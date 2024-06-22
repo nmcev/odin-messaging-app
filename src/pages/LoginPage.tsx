@@ -15,7 +15,7 @@ import { AuthContext } from '../context/AuthContext';
       return;
     }
     
-    const { login, errors, message } =authContext
+    const { login, errors, message, isValid } =authContext
 
 
     useEffect(() => {
@@ -32,6 +32,10 @@ import { AuthContext } from '../context/AuthContext';
       e.preventDefault();
       await login(username, password);
 
+    }
+      
+    if (isValid) {
+      navigate('/homepage')
     }
       
   
