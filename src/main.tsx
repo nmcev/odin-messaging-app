@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import { PrivateRoute } from './lib/PrivateRoute.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { HomePage } from './pages/HomePage.tsx';
+import  { ProfilePage }  from './pages/ProfilePage.tsx';
 
 const router = createBrowserRouter([
   {
@@ -35,7 +36,11 @@ const router = createBrowserRouter([
         path: 'homepage',
         element: <PrivateRoute>
           <HomePage />
-        </PrivateRoute>
+          </PrivateRoute>
+      },
+      {
+        path: 'user/:username',
+        element: <ProfilePage />
       }
     ]
   }
