@@ -23,6 +23,7 @@ interface AuthContextType {
     validateToken: () => Promise<boolean>;
     message: string | string,
     currentUser: Data;
+    isValid: boolean;
 
 }
 const initialUser: Data = {
@@ -47,19 +48,20 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const [ message, setMessage ] = useState<string>('')
     const [currentUser, setCurrentUser] = useState<Data>(initialUser);
     const navigate = useNavigate();
+    const [ isValid, setIsValid ] = useState<boolean>(false);
 
 
     useEffect(() => {
+    
+      const token = localStorage.getItem('token');
       if (token) {
-        setToken(localStorage.getItem('token'))
-
-        validateToken().then(isValid => {
-          if (!isValid) {
-            logout();
-          }
-        });
+        setToken(token);
+        validateToken();
+      } else {
+        setIsValid(false);
       }
-    }, [token])
+
+    }, [])
 
     const validateToken = async () => {
 
@@ -77,6 +79,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data);
+          setIsValid(true)
           return !!data.user
         } else {
           console.error('Error: response not ok');
@@ -215,9 +218,13 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     }
 
     const logout = () => {
+      const userConfirmed = window.confirm('Are you sure you want to log out?');
+      if (userConfirmed) {
         localStorage.removeItem('token');
         setToken(null);
+        setIsValid(false);
         navigate('/login');
+      }
     };
     
 
@@ -230,7 +237,8 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
         validateToken,
         register,
         message,
-        currentUser
+        currentUser,
+        isValid
       };
       
     return (
