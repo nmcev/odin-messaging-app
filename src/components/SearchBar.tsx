@@ -26,7 +26,7 @@ const SearchBar: React.FC<SearchBarProps>= ({ setResults }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/search?query=${query}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/search?query=${query}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
