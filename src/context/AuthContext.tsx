@@ -1,6 +1,19 @@
 import React, { createContext, useEffect, useState,  } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL: string = import.meta.env.VITE_API_URL;
+interface Data {
+  user: User;
+  joinedAt: string;
+
+
+}
+interface User {
+  username: string;
+  _id: string;
+  profilePic: string;
+
+}
 interface AuthContextType {
     token: string | null;
     errors: { message: string; path: string }[];
@@ -8,9 +21,19 @@ interface AuthContextType {
     register: (username: string, password: string) => Promise<void>
     logout: () => void
     validateToken: () => Promise<boolean>;
-    message: string | string
+    message: string | string,
+    currentUser: Data;
 
 }
+const initialUser: Data = {
+  joinedAt: '',
+  user: {
+    _id: '',
+    username: '',
+    profilePic: ''
+  }
+
+};
 
 interface AuthProviderProps {
     children: React.ReactNode;
@@ -22,6 +45,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const [ token , setToken ] = useState<string | null>(localStorage.getItem('token'));
     const [errors, setErrors] = useState<{ message: string; path: string }[]>([]);
     const [ message, setMessage ] = useState<string>('')
+    const [currentUser, setCurrentUser] = useState<Data>(initialUser);
     const navigate = useNavigate();
 
 
@@ -40,7 +64,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const validateToken = async () => {
 
       try {
-        const response = await fetch('http://localhost:3000/api/profile', {
+        const response = await fetch(`${API_URL}/api/profile`, {
           method: 'GET',
           headers: {
             
@@ -52,7 +76,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
 
         if (response.ok) {
           const data = await response.json();
-
+          setCurrentUser(data);
           return !!data.user
         } else {
           console.error('Error: response not ok');
@@ -89,7 +113,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
 
 
       try {
-        const response = await fetch('http://localhost:3000/api/register', {
+        const response = await fetch(`${API_URL}/api/register`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
@@ -152,7 +176,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
       
       try{
           
-        const response = await fetch('http://localhost:3000/api/login', {
+        const response = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
@@ -205,7 +229,8 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
         logout,
         validateToken,
         register,
-        message
+        message,
+        currentUser
       };
       
     return (
