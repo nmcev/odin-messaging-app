@@ -31,7 +31,7 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({children}) => {
     
 
     checkToken();
-}, [validateToken]);
+}, []);
 
 if (loading) {
   return <LoadingSpinner />;
