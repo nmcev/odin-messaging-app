@@ -40,7 +40,7 @@ export const UserPage: React.FC<UserPageProps>= ({ username }) => {
 
 
   return (
-    <section className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-100 p-5">
+    <section className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-100  dark:bg-[#2b2b2b] p-5">
     <div className="bg-white shadow-lg rounded-lg p-6 max-w-sm w-full">
       <div className="flex flex-col items-center ">
         <div className="w-32 h-32 rounded-full relative border-4 border-orange-500 shadow-lg ">
