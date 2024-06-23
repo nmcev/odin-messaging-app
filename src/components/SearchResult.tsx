@@ -1,32 +1,54 @@
-import React from 'react'
+import React, { useContext } from 'react';
+import { UserContext } from '../context/UserContext';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface User {
-    _id: string;
-    username: string;
-    profilePic: string;
-  };
-  
-interface SearchResultProps {
-    results:  User[];
+  _id: string;
+  username: string;
+  profilePic: string;
+  lastMessage: string;
+  lastMessageSendAt: string;
 }
-export const SearchResult: React.FC<SearchResultProps> = ({results}) => {
-const navigate = useNavigate();
+
+interface SearchResultProps {
+  results: User[];
+}
+
+export const SearchResult: React.FC<SearchResultProps> = ({ results }) => {
+  const userContext = useContext(UserContext);
+  const authContext = useContext(AuthContext);
+
+  if (!userContext || !authContext) {
+    return null;
+  }
+
+  const navigate = useNavigate();
+  const { setChattingWith } = userContext;
+
+  const handleOpenChat = (user: User) => {
+
+    if (authContext.currentUser?.user?._id === user._id) {
+      return navigate(`/user/${user.username}`);
+    }
+    setChattingWith(user);
+  };
 
   return (
-    <div className="flex flex-col gap-8 pl-16 mt-6">
-    { results && (
-      results.map((user) => (
-         <div key={user._id} className="flex items-center cursor-pointer" onClick={() => navigate(`/user/${user.username}`)}>
-          <div className="w-12 h-12">
-            <img className="rounded-full w-full h-full object-cover" src={user.profilePic} alt="user avatar" />
-          </div>
-          <div className="ml-4">
-            <h2 className="text-xl font-bold">{user.username}</h2>
-          </div>
-    
-        </div>
-      ))
+    <section className="flex flex-col gap-8 pl-16 mt-6 ">
+    {results && (
+        results.map((data) => (
+            <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md p-2 mx-3" onClick={() => handleOpenChat(data)}>
+                <div className="w-12 h-12 flex-shrink-0">
+                    <img className="rounded-full w-full h-full object-cover" src={data.profilePic} alt="user avatar" />
+                </div>
+                <div className="ml-4 flex justify-between  w-full items-center ">
+                    <h2 className="text-xl font-bold">{data.username}</h2>
+                </div>
+
+            </div>
+        ))
     )}
-  </div>  )
-}
+</section>
+  );
+};
