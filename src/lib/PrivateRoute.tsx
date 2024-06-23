@@ -2,6 +2,7 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 interface PrivateRouteProps {
     children: React.ReactNode;
@@ -33,7 +34,7 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({children}) => {
 }, [validateToken]);
 
 if (loading) {
-  return <div>Loading...</div>;
+  return <LoadingSpinner />;
 }
 
 if (!isValid) {
