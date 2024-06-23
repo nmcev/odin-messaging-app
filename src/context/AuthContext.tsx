@@ -24,6 +24,7 @@ interface AuthContextType {
     message: string | string,
     currentUser: Data;
     isValid: boolean;
+    setCurrentUser?: React.Dispatch<React.SetStateAction<Data>>;
 
 }
 const initialUser: Data = {
@@ -238,7 +239,8 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
         register,
         message,
         currentUser,
-        isValid
+        isValid,
+        setCurrentUser,
       };
       
     return (
