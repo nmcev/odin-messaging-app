@@ -93,8 +93,14 @@ export const MessagesDisplay = () => {
             {/* render if the content is image */}
             {
               msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
-                <img src={msg.content} alt='content' className='w-44 h-44 object-cover rounded-lg mt-2' />
-              ) : (
+                <>
+                  <img src={msg.content} alt='content' className='w-72 h-72 object-cover rounded-lg mt-2' />
+                  <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                    {msg.sendAt && displayTime(msg.sendAt)}
+                  </p>
+
+                </>
+                ) : (
                 <>
                 <p className='text-sm'>{msg.content}</p> 
                 <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
