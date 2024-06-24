@@ -8,7 +8,7 @@ import { UserContext } from '../context/UserContext';
 import { SendMessageComponent } from '../components/SendMessageComponent';
 import { ChatHeader } from '../components/ChatHeader';
 import { MessagesDisplay } from '../components/MessagesDisplay';
-
+import  globalIcon from '../assets/global.svg';
 interface User {
   _id: string;
   username: string;
@@ -81,14 +81,43 @@ export const HomePage: React.FC = () => {
 
 
 
-
+  const chatContainerStyle: React.CSSProperties = {
+    height: 'calc(100vh - 6rem)',
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+  };
+  
   return (
     <div className='grid md:grid-cols-8 w-screen grid-cols-1'>
       {/* Chats section */}
-      <section className='md:col-span-2 col-span-1 bg-gray-200 min-h-screen dark:bg-slate-800 relative'>
+      <section className='md:col-span-2 col-span-1 bg-gray-200 min-h-screen dark:bg-slate-800 relative pb-20' style={chatContainerStyle}>
         <SearchBar setResults={setResults} />
         <SearchResult results={results} />
 
+
+        {/* Global chat */}
+        <div className=' border-b-[1px] border-gray-300 w-96 ml-10'>
+        <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
+      </div>
+
+      <section className="flex flex-col gap-8 pl-10 mt-4 ">
+      <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3 '>
+        <div className='w-12 h-12 flex-shrink-0'>
+          <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
+        </div>
+            <h2 className='text-xl font-bold'>TalkMate Chat</h2>
+
+
+      </div>
+      </section>
+
+
+      <div className=' border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+        <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
+      </div>
+
+        {/* display users */}
       {users.length > 0 && !results.length && <UsersList users={users} />}
 
         <FooterProfile currentUser={currentUser} />
