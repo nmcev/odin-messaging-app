@@ -103,6 +103,16 @@ import { AuthContext } from '../context/AuthContext';
                   </button>
                 </div>
               </form>
+              {/* demo account */}
+              <div className="mt-4">
+                  <button onClick={() => {
+                    login('nee', '12345');
+                  }} 
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm poppins-black font-medium text-white bg-[#ff9800] hover:bg-[#ff9900de] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300">
+                    Use Demo Account
+                    </button>
+
+              </div>
               {
                     errors.map((error, index) => (
                       error.path === 'general' && (
