@@ -91,13 +91,17 @@ export const HomePage: React.FC = () => {
   return (
     <div className='grid md:grid-cols-8 w-screen grid-cols-1'>
       {/* Chats section */}
-      <section className='md:col-span-2 col-span-1 bg-gray-200 min-h-screen dark:bg-slate-800 relative pb-20' style={chatContainerStyle}>
+      <section className='md:col-span-2 col-span-1 bg-gray-200 min-h-screen dark:bg-[#181A1B] relative pb-20 border-r-[1px] border-gray-500' style={chatContainerStyle} >
         <SearchBar setResults={setResults} />
         <SearchResult results={results} />
 
 
+      <div className='flex flex-col gap-4'>
         {/* Global chat */}
-        <div className=' border-b-[1px] border-gray-300 w-96 ml-10'>
+
+      {results.length  === 0 &&  (
+      <>
+      <div className=' border-b-[1px] border-gray-300 w-96 ml-10'>
         <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
       </div>
 
@@ -111,20 +115,28 @@ export const HomePage: React.FC = () => {
 
       </div>
       </section>
+      </>
+      )}
+      
 
 
-      <div className=' border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
-        <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
-      </div>
 
         {/* display users */}
-      {users.length > 0 && !results.length && <UsersList users={users} />}
+      {users.length > 0 && !results.length && 
+      <>   
+        <div className=' border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
+        </div> 
+        <UsersList users={users} />
+      </>
+      }
+      </div>
 
         <FooterProfile currentUser={currentUser} />
       </section>
 
       {/* chat section */}
-      <section className='md:col-span-6 dark:bg-[#121e30] relative'>
+      <section className='md:col-span-6 dark:bg-[#181A1B] relative'>
       <ChatHeader />
 
         {/* display messages */}
