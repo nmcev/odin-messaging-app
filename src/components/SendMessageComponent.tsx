@@ -24,6 +24,7 @@ interface Message {
   content: string;
   sender: string;
   receiver: string;
+  sendAt: string;
 }
 
 export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
@@ -69,6 +70,7 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
         content: message,
         sender: authContext.currentUser!.user._id,
         receiver: chattingWith._id,
+        sendAt: new Date().toISOString(),
       };
 
       // send message to the server
@@ -141,6 +143,7 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
           content: updatedImageUrl,
           sender: authContext.currentUser!.user._id,
           receiver: chattingWith!._id,
+          sendAt: new Date().toISOString(),
         };
 
         socket?.emit('sendMessage', newMessage);
