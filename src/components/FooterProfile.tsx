@@ -33,7 +33,7 @@ export const FooterProfile: React.FC<FooterProfileProps> = ({currentUser}) => {
     const  { logout } = authContext
   return (
 
-    <footer className="sticky  bottom-0 bg-[#181A1B] text-white py-2 px-4 flex items-center justify-between gap-5">
+    <footer className=" sticky bottom-0 right-0 left-0  bg-[#181A1B] text-white py-2 px-4 flex items-center justify-between gap-5">
 
           <div className="flex items-center cursor-pointer " onClick={() => navigate(`/user/${currentUser.user.username}`)}>
               <div className="w-12 h-12">
