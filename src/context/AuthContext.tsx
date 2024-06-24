@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState,  } from 'react';
+import React, { createContext, useEffect, useState, useCallback  } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const API_URL: string = import.meta.env.VITE_API_URL;
@@ -52,19 +52,9 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const [ isValid, setIsValid ] = useState<boolean>(false);
 
 
-    useEffect(() => {
-    
-      const token = localStorage.getItem('token');
-      if (token) {
-        setToken(token);
-        validateToken();
-      } else {
-        setIsValid(false);
-      }
 
-    }, [])
 
-    const validateToken = async () => {
+    const validateToken = useCallback(async () => {
 
       try {
         const response = await fetch(`${API_URL}/api/profile`, {
@@ -92,8 +82,20 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
             return false
       }
 
-    }
+    }, [token])
 
+    useEffect(() => {
+    
+      const token = localStorage.getItem('token');
+      if (token) {
+        setToken(token);
+        validateToken();
+      } else {
+        setIsValid(false);
+      }
+
+    }, [validateToken])
+  
     const register = async(username: string,password: string) => {
       setErrors([]);
 
