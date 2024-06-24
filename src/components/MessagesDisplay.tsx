@@ -25,17 +25,18 @@ export const MessagesDisplay = () => {
         );
       }
 
-      function displayTime(timestamp: string) {
+      function displayTime(timestamp: string): string {
         const date = new Date(timestamp);
-    
-    
-          const hours = date.getHours().toString().padStart(2, '0');
-          const minutes = date.getMinutes().toString().padStart(2, '0');
-          return `${hours}:${minutes}`;
+        
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = (hours % 12 || 12).toString().padStart(2, '0');
+        return `${formattedHours}:${minutes} ${ampm}`;
      
       }
 
-      function displayDate(timestamp: string) {
+      function displayDate(timestamp: string): string {
         const date = new Date(timestamp);
     
         const day = date.getDate().toString().padStart(2, '0');
@@ -52,9 +53,10 @@ export const MessagesDisplay = () => {
         const messageDate = displayDate(msg.sendAt);
         const showDate = messageDate !== lastDisplayDate;
 
-        if (showDate) {
-          lastDisplayDate = messageDate;
-        }
+          if (showDate && msg.sendAt) {
+            lastDisplayDate = messageDate;
+          }
+        
         return (
 
           <React.Fragment key={index}>
