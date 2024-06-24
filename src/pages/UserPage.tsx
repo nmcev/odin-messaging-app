@@ -22,27 +22,29 @@ interface Data {
 export const UserPage: React.FC<UserPageProps>= ({ username }) => {
     const [user, setUser] = useState<Data | null>(null)
     const userContext = useContext(UserContext);
+    const navigate = useNavigate();
 
+    useEffect(() => {
+      const fetchUser = async () => {
+          try {
+              const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}`)
+              if (response.ok) {
+                  const data = await response.json();
+                  setUser(data);
+              }
+          } catch (error) {
+              console.error(error)
+          }
+      }
+      fetchUser();
+    }, [username])
+  
     if (!userContext) {
       return <LoadingSpinner />
     }
 
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}`)
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                }
-            } catch (error) {
-                console.error(error)
-            }
-        }
-        fetchUser();
-    }, [username])
+
 
     if (!user) {
         return <LoadingSpinner />
