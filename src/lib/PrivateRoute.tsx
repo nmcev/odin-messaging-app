@@ -1,5 +1,5 @@
 
-import React, { useContext, useState, useEffect } from 'react'
+import React, { useContext} from 'react'
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -12,36 +12,19 @@ interface PrivateRouteProps {
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({children}) => {
 
     const authContext = useContext(AuthContext);
-    const [ isValid, setIsValid ] = useState<boolean>(false);
-    const [ loading, setLoading ] = useState<boolean>(true);
 
 
-    if (!authContext) {
-        return;
+    const { isValid } = authContext ?? {};
+
+
+
+    if (isValid === undefined) {
+      return <LoadingSpinner />;
     }
 
-    const { validateToken } = authContext;
+    if (!isValid) {
+      return <Navigate to="/login" />;
+    }
 
-    useEffect(() => {
-        const checkToken = async () => {
-          const isValid = await validateToken();
-          setIsValid(isValid);
-          setLoading(false);
-        };
-    
-
-    checkToken();
-}, []);
-
-if (loading) {
-  return <LoadingSpinner />;
-}
-
-if (!isValid) {
-  return <Navigate to="/login" />;
-}
-
-return <>{children}</>;
-
-
+    return <>{children}</>;
 }
