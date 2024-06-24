@@ -91,49 +91,47 @@ export const HomePage: React.FC = () => {
   return (
     <div className='grid md:grid-cols-8 w-screen grid-cols-1'>
       {/* Chats section */}
-      <section className='md:col-span-2 col-span-1 bg-gray-200 min-h-screen dark:bg-[#181A1B] relative pb-20 border-r-[1px] border-gray-500' style={chatContainerStyle} >
-        <SearchBar setResults={setResults} />
-        <SearchResult results={results} />
-
+      <section className='md:col-span-2 min-h-screen overflow-x-hidden col-span-1 bg-gray-200 dark:bg-[#181A1B] relative   border-r-[1px] border-gray-500' style={chatContainerStyle}>
+  <div className='flex flex-col h-screen'>
+    <div className='flex-grow overflow-y-auto'>
+      <SearchBar setResults={setResults} />
+      <SearchResult results={results} />
 
       <div className='flex flex-col gap-4'>
         {/* Global chat */}
+        {results.length === 0 && (
+          <>
+            <div className='border-b-[1px] border-gray-300 w-96 ml-10'>
+              <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
+            </div>
+            <section className="flex flex-col gap-8 pl-10 mt-4">
+              <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3'>
+                <div className='w-12 h-12 flex-shrink-0'>
+                  <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
+                </div>
+                <h2 className='text-xl font-bold'>TalkMate Chat</h2>
+              </div>
+            </section>
+          </>
+        )}
 
-      {results.length  === 0 &&  (
-      <>
-      <div className=' border-b-[1px] border-gray-300 w-96 ml-10'>
-        <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
+        {/* Display users */}
+        {users.length > 0 && !results.length && (
+          <>
+            <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+              <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold m-0'>Chats</h2>
+            </div>
+            <UsersList users={users} />
+          </>
+        )}
       </div>
-
-      <section className="flex flex-col gap-8 pl-10 mt-4 ">
-      <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3 '>
-        <div className='w-12 h-12 flex-shrink-0'>
-          <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
-        </div>
-            <h2 className='text-xl font-bold'>TalkMate Chat</h2>
+    </div>
+    </div>
 
 
-      </div>
-      </section>
-      </>
-      )}
-      
+  <FooterProfile currentUser={currentUser} />
+</section>
 
-
-
-        {/* display users */}
-      {users.length > 0 && !results.length && 
-      <>   
-        <div className=' border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
-             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
-        </div> 
-        <UsersList users={users} />
-      </>
-      }
-      </div>
-
-        <FooterProfile currentUser={currentUser} />
-      </section>
 
       {/* chat section */}
       <section className='md:col-span-6 dark:bg-[#181A1B] relative'>
