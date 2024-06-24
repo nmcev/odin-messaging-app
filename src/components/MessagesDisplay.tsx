@@ -63,7 +63,7 @@ export const MessagesDisplay = () => {
           {
             showDate && (
               <div className='w-full flex justify-center'>
-                <div className='bg-gray-200 dark:bg-[#0e1621] text-gray-600 dark:text-gray-400 p-1 rounded-lg'>
+                <div className='bg-gray-200 dark:bg-[#0a0f16] text-gray-600 dark:text-gray-400 p-1 rounded-lg'>
                   {messageDate}
                 </div>
               </div>
@@ -97,15 +97,15 @@ export const MessagesDisplay = () => {
               msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                 <>
                   <img src={msg.content} alt='content' className='w-72 h-72 object-cover rounded-lg mt-2' />
-                  <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-gray-500 dark:text-white mt-1'>
                     {msg.sendAt && displayTime(msg.sendAt)}
                   </p>
 
                 </>
                 ) : (
                 <>
-                <p className='text-sm'>{msg.content}</p> 
-                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                <p className='text-sm dark:text-white text-black'>{msg.content}</p> 
+                <p className='text-xs  mt-1'>
                   {msg.sendAt && displayTime(msg.sendAt)}
                 </p>
                 </>
