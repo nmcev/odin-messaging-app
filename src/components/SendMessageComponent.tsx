@@ -1,13 +1,14 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 import attachIcon from '../assets/attach.svg';
 
 interface SendMessageComponentProps {
   message: string;
   setMessage: (message: string) => void;
   setUsers?: React.Dispatch<React.SetStateAction<User[]>>;
+  socket?: Socket;
 }
 
 interface User {
@@ -31,36 +32,14 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   message,
   setMessage,
   setUsers,
+  socket,
 }) => {
   const authContext = useContext(AuthContext)!;
   const { chattingWith, messages, setMessages } = useContext(UserContext)!;
-  const [socket, setSocket] = useState<Socket | undefined>(undefined);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
 
-  // socket connection
-  useEffect(() => {
-    const newSocket = io(API_URL);
 
-    newSocket.on('connect', () => {
-      setSocket(newSocket);
-    });
-    newSocket.emit('register', authContext.currentUser.user._id);
-
-    newSocket.on('receiveMessage', (receivedMessage: Message) => {
-      setMessages((prevMessages: Record<string, Message[]>) => ({
-        ...prevMessages,
-        [receivedMessage.sender.toString()]: [
-          ...(prevMessages[receivedMessage.sender.toString()] || []),
-          receivedMessage,
-        ],
-      }));
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [authContext.currentUser.user._id, setMessages]);
 
   // handle sending message
   const handleSubmit = (e: React.FormEvent) => {

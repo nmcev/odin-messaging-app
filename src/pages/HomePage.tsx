@@ -9,6 +9,16 @@ import { SendMessageComponent } from '../components/SendMessageComponent';
 import { ChatHeader } from '../components/ChatHeader';
 import { MessagesDisplay } from '../components/MessagesDisplay';
 import  globalIcon from '../assets/global.svg';
+import { io, Socket } from 'socket.io-client';
+
+
+interface Message {
+  content: string;
+  sender: string;
+  receiver: string;
+  sendAt: string;
+}
+
 interface User {
   _id: string;
   username: string;
@@ -27,7 +37,58 @@ export const HomePage: React.FC = () => {
   const authContext = useContext(AuthContext)!;
   const { currentUser } = authContext;
   const { chattingWith, setMessages } = useContext(UserContext)!;
+  const [socket, setSocket] = useState<Socket | undefined>(undefined);
 
+
+    // socket connection
+  useEffect(() => {
+    const newSocket = io(API_URL);
+
+    newSocket.on('connect', () => {
+      setSocket(newSocket);
+      console.log(newSocket.connected);
+
+    });
+    newSocket.emit('register', authContext.currentUser.user._id);
+
+    // check connection status
+    
+    newSocket.on('receiveMessage', (receivedMessage: Message) => {
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((user) => {
+          if (user._id === receivedMessage.sender) {
+            return {
+              ...user,
+              lastMessage: receivedMessage.content,
+              lastMessageSendAt: receivedMessage.sendAt,
+            };
+          }
+          return user;
+        });
+
+        updatedUsers.sort((a, b) => {
+          return new Date(b.lastMessageSendAt).getTime() - new Date(a.lastMessageSendAt).getTime();
+        });
+        
+        return updatedUsers;
+      }
+      );
+
+
+
+      setMessages((prevMessages: Record<string, Message[]>) => ({
+        ...prevMessages,
+        [receivedMessage.sender.toString()]: [
+          ...(prevMessages[receivedMessage.sender.toString()] || []),
+          receivedMessage,
+        ],
+      }));
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [authContext.currentUser.user._id, setMessages]);
 
 // fetch messages
   useEffect(() => {
@@ -144,7 +205,7 @@ export const HomePage: React.FC = () => {
 
         {/* message and image input */}
         {chattingWith && (
-          <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} />
+          <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket ={socket} />
         )}
       </section>
     </div>
