@@ -115,7 +115,7 @@ export const HomePage: React.FC = () => {
     if (chattingWith) {
       fetchMessages();
     }
-  }, [API_URL, authContext.token, chattingWith, setMessages]);
+  }, [authContext.token, chattingWith, setMessages]);
 
 
 
