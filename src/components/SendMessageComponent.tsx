@@ -182,7 +182,7 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   };
 
   return (
-    <footer className="absolute bottom-0 left-0 right-0 bg-[#2b2b2b] text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
+    <footer className="absolute bottom-0 left-0 right-0 bg-[#181A1B]  text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
       <input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
