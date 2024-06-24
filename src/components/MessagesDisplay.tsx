@@ -7,6 +7,14 @@ export const MessagesDisplay = () => {
     const { chattingWith, messages } = useContext(UserContext)!;
     const { currentUser } = useContext(AuthContext)!;
 
+    const chatContainerRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+      }, [messages, chattingWith]);
+
     const chatContainerStyle: React.CSSProperties = {
         height: 'calc(100vh - 6rem)',
         overflowY: 'auto',
@@ -47,7 +55,7 @@ export const MessagesDisplay = () => {
       let lastDisplayDate: string | null = null;
   return (
 
-    <div className='p-4 mt-20 overscroll-y-auto md:p-20 pb-20' style={chatContainerStyle}>
+    <div className='p-4 mt-20 overscroll-y-auto md:p-20 pb-20' style={chatContainerStyle} ref={chatContainerRef}>
     {messages[chattingWith._id] && messages[chattingWith._id].length > 0 ? (
       messages[chattingWith._id].map((msg, index) => {
         const messageDate = displayDate(msg.sendAt);
