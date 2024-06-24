@@ -25,6 +25,17 @@ export const MessagesDisplay = () => {
         );
       }
 
+      function displayTime(timestamp: string) {
+        const date = new Date(timestamp);
+    
+    
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+     
+      }
+
+
   return (
 
     <div className='p-4 mt-20 overscroll-y-auto md:p-20 pb-20' style={chatContainerStyle}>
@@ -56,7 +67,12 @@ export const MessagesDisplay = () => {
               msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                 <img src={msg.content} alt='content' className='w-44 h-44 object-cover rounded-lg mt-2' />
               ) : (
+                <>
                 <p className='text-sm'>{msg.content}</p> 
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                  {msg.sendAt && displayTime(msg.sendAt)}
+                </p>
+                </>
               )
             }
 
