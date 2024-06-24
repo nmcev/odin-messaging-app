@@ -12,6 +12,7 @@ interface Message {
   content: string;
   sender: string;
   receiver: string;
+  sendAt: string;
 }
 
 interface UserContextType {
