@@ -35,12 +35,40 @@ export const MessagesDisplay = () => {
      
       }
 
-
+      function displayDate(timestamp: string) {
+        const date = new Date(timestamp);
+    
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        return `${day}/${month}`;
+      }
+      
+      let lastDisplayDate: string | null = null;
   return (
 
     <div className='p-4 mt-20 overscroll-y-auto md:p-20 pb-20' style={chatContainerStyle}>
     {messages[chattingWith._id] && messages[chattingWith._id].length > 0 ? (
-      messages[chattingWith._id].map((msg, index) => (
+      messages[chattingWith._id].map((msg, index) => {
+        const messageDate = displayDate(msg.sendAt);
+        const showDate = messageDate !== lastDisplayDate;
+
+        if (showDate) {
+          lastDisplayDate = messageDate;
+        }
+        return (
+
+          <React.Fragment key={index}>
+          {
+            showDate && (
+              <div className='w-full flex justify-center'>
+                <div className='bg-gray-200 dark:bg-[#0e1621] text-gray-600 dark:text-gray-400 p-1 rounded-lg'>
+                  {messageDate}
+                </div>
+              </div>
+            )
+            
+          }
+
         <div
           key={index}
           className={`flex gap-2 ${
@@ -78,7 +106,9 @@ export const MessagesDisplay = () => {
 
           </div>
         </div>
-      ))
+        </React.Fragment>
+      )})
+    
     ) : (
       <div className='min-h-screen flex items-center justify-center'>
         <h1 className='text-2xl font-bold text-gray-500 dark:text-gray-400'>
