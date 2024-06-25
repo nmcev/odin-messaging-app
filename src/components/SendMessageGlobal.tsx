@@ -104,8 +104,9 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
           sendAt: new Date().toISOString(),
         };
 
-        socket?.emit('sendMessage', newMessage);
+        socket?.emit('sendGlobalMessage', newMessage);
 
+        setGlobalMessages((prevMessages) => [...prevMessages, newMessage]);
 
         setSelectedImage(null);
       } catch (error) {
