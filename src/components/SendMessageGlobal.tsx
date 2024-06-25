@@ -122,6 +122,11 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
         type="text"
         placeholder="Type a message"
         className="p-2 rounded-full w-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#121212] dark:text-white"
+        onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              handleSubmit(e);
+            }
+          }}
       />
 
       {/* Input to send image */}
