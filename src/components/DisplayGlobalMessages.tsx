@@ -123,12 +123,12 @@ export const DisplayGlobalMessages = () => {
                 </p>
                 {msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                   <>
-                    <img
-                      src={msg.content}
-                      alt='content'
-                      className='w-72 h-72 object-cover rounded-lg mt-2 cursor-pointer'
-                      onClick={() => setSelectedImage(msg.content)}
+                 <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg  cursor-pointer'>
+                   <img src={msg.content} alt='preview'
+                    className='max-w-full max-h-full object-contain cursor-pointer' 
+                    onClick={() => setSelectedImage(msg.content)}
                     />
+                </div>
                     <p className='text-xs text-gray-500 dark:text-white mt-1'>
                       {msg.sendAt && displayTime(msg.sendAt)}
                     </p>
@@ -147,7 +147,12 @@ export const DisplayGlobalMessages = () => {
       {selectedImage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
           <div className="relative">
-            <img src={selectedImage} alt="preview" className="max-w-full max-h-full object-contain" />
+          <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg bg-slate-500 dark:bg-slate-100  cursor-pointer'>
+                   <img src={selectedImage} alt='preview'
+                    className='max-w-full max-h-full object-contain cursor-pointer' 
+                    onClick={() => setSelectedImage(null)}
+                    />
+            </div>            
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute top-2 right-2 bg-white text-black p-2 rounded-full"
