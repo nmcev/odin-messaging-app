@@ -1,8 +1,8 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 
-const debounce = (func: (...args: unknown[]) => void, wait: number) => {
+const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>;
-  return (...args: unknown[]) => {
+  return (...args: T) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       func(...args);
