@@ -93,7 +93,7 @@ export const DisplayGlobalMessages = () => {
                 <img
                   src={msg.sender._id === currentUser.user._id ? currentUser?.user.profilePic : msg.sender.profilePic}
                   alt='profile'
-                  className='w-full h-full object-cover rounded-full'
+                  className='w-full h-full object-cover rounded-full cursor-pointer'
                   onClick={() => navigate(`/user/${msg.sender.username}`)}
                 />
               </div>
