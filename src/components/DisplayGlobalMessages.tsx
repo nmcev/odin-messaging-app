@@ -1,6 +1,7 @@
 import React, { useContext, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface GlobalMessage {
   content: string;
@@ -19,7 +20,7 @@ export const DisplayGlobalMessages = () => {
   const { currentUser } = useContext(AuthContext)!;
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
+  const navigate = useNavigate();
 
 
   const chatContainerStyle: React.CSSProperties = {
@@ -88,6 +89,7 @@ export const DisplayGlobalMessages = () => {
                   src={msg.sender._id === currentUser.user._id ? currentUser?.user.profilePic : msg.sender.profilePic}
                   alt='profile'
                   className='w-full h-full object-cover rounded-full'
+                  onClick={() => navigate(`/user/${msg.sender.username}`)}
                 />
               </div>
               <div
@@ -97,7 +99,7 @@ export const DisplayGlobalMessages = () => {
                     : 'bg-gray-200 dark:bg-[#0e1621] text-gray-600 dark:text-gray-400 mr-auto'
                 }`}
               >
-                <p className='text-sm poppins-bold'>
+                <p className='text-sm poppins-bold cursor-pointer' onClick={() => navigate(`/user/${msg.sender.username}`)}>
                   {msg.sender._id === currentUser?.user._id ? 'You' : msg.sender.username}
                 </p>
                 {msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
