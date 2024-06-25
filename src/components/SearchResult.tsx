@@ -19,11 +19,12 @@ export const SearchResult: React.FC<SearchResultProps> = ({ results }) => {
   const userContext = useContext(UserContext);
   const authContext = useContext(AuthContext);
 
+  const navigate = useNavigate();
+
   if (!userContext || !authContext) {
     return null;
   }
 
-  const navigate = useNavigate();
   const { setChattingWith } = userContext;
 
   const handleOpenChat = (user: User) => {
