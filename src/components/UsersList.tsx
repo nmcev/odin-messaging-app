@@ -11,14 +11,16 @@ interface User {
 
 interface UsersListProps {
     users: User[];
+    setOpenGlobalChat: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const UsersList: React.FC<UsersListProps> = ({ users }) => {
+export const UsersList: React.FC<UsersListProps> = ({ users, setOpenGlobalChat }) => {
     const userContext = useContext(UserContext);
     const { setChattingWith } = userContext;
 
     const handleOpenChat = (user: User) => {
         setChattingWith(user);
+        setOpenGlobalChat(false);
     };
 
     const formatLastMessage = (timestamp: string): string => {

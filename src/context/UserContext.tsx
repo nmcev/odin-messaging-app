@@ -15,6 +15,17 @@ interface Message {
   sendAt: string;
 }
 
+interface GlobalMessage {
+  content: string;
+  sender: Sender;
+  sendAt: string;
+}
+
+interface Sender {
+  _id: string;
+  profilePic: string;
+  username: string;
+}
 interface UserContextType {
   chattingWith: User | null;
   setChattingWith: (user: User | null) => void;
@@ -23,6 +34,8 @@ interface UserContextType {
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   fetchUsers: (currentUser: User ) => void;
+  globalMessages: GlobalMessage[];
+  setGlobalMessages: React.Dispatch<React.SetStateAction<GlobalMessage[]>>;
 }
 
 const initialContext: UserContextType = {
@@ -33,6 +46,8 @@ const initialContext: UserContextType = {
   users: [],
   setUsers: () => {},
   fetchUsers: () => {},
+  globalMessages: [],
+  setGlobalMessages: () => {},
 };
 
 const API_URL: string = import.meta.env.VITE_API_URL;
@@ -46,6 +61,7 @@ interface UserContextProviderProps {
 const UserContextProvider: React.FC<UserContextProviderProps> = ({ children }) => {
   const [chattingWith, setChattingWith] = useState<User | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [globalMessages, setGlobalMessages] = useState<GlobalMessage[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   const fetchUsers = async (currentUser:  User  ) => {
@@ -78,6 +94,8 @@ const UserContextProvider: React.FC<UserContextProviderProps> = ({ children }) =
     users,
     setUsers,
     fetchUsers,
+    globalMessages,
+    setGlobalMessages,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

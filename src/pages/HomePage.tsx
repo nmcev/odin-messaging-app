@@ -10,6 +10,8 @@ import { ChatHeader } from '../components/ChatHeader';
 import { MessagesDisplay } from '../components/MessagesDisplay';
 import  globalIcon from '../assets/global.svg';
 import { io, Socket } from 'socket.io-client';
+import { SendMessageGlobal } from '../components/SendMessageGlobal';
+import { DisplayGlobalMessages } from '../components/DisplayGlobalMessages';
 
 
 interface Message {
@@ -18,6 +20,19 @@ interface Message {
   receiver: string;
   sendAt: string;
 }
+
+interface GlobalMessage {
+  content: string;
+  sender: Sender;
+  sendAt: string;
+}
+
+interface Sender {
+  _id: string;
+  profilePic: string;
+  username: string;
+}
+
 
 interface User {
   _id: string;
@@ -31,13 +46,16 @@ const API_URL: string = import.meta.env.VITE_API_URL;
 
 export const HomePage: React.FC = () => {
   const [message, setMessage] = useState<string>('');
+  const [globalMessage, setGlobalMessage] = useState<string>('');
   const [results, setResults] = useState<User[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   const authContext = useContext(AuthContext)!;
   const { currentUser } = authContext;
-  const { chattingWith, setMessages } = useContext(UserContext)!;
+  const { chattingWith, setMessages, setGlobalMessages, setChattingWith } = useContext(UserContext)!;
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
+  const [openGlobalChat, setOpenGlobalChat] = useState<boolean>(false);
+    
 
 
     // socket connection
@@ -85,6 +103,16 @@ export const HomePage: React.FC = () => {
       }));
     });
 
+        //receive global message
+        newSocket.on('receiveGlobalMessage', (receivedMessage: GlobalMessage) => {
+
+          setGlobalMessages((prevMessages) => {
+            return [...prevMessages, receivedMessage];
+          }); 
+        
+          console.log(receivedMessage);
+    
+        });
     return () => {
       newSocket.disconnect();
     };
@@ -118,6 +146,30 @@ export const HomePage: React.FC = () => {
   }, [authContext.token, chattingWith, setMessages]);
 
 
+  // fetch global messages
+  useEffect(() => {
+    const fetchGlobalMessages = async () => {
+
+      try {
+        const response = await fetch(`${API_URL}/api/global-messages`, {
+          headers: {
+            Authorization: `${authContext.token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setGlobalMessages(data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+    };
+
+    fetchGlobalMessages();
+  }, [authContext.token, setGlobalMessages]);
 
 
 // fetch users
@@ -142,6 +194,11 @@ export const HomePage: React.FC = () => {
 
 
 
+  const handleGlobalChat = () => {
+    setOpenGlobalChat(true);
+    setChattingWith(null);
+  }
+
   const chatContainerStyle: React.CSSProperties = {
     height: 'calc(100vh - 6rem)',
     overflowY: 'auto',
@@ -164,7 +221,7 @@ export const HomePage: React.FC = () => {
           <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
         </div>
         <section className="flex flex-col gap-8 pl-10 mt-4">
-          <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3'>
+          <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3' onClick={handleGlobalChat}>
             <div className='w-12 h-12 flex-shrink-0'>
               <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
             </div>
@@ -180,7 +237,7 @@ export const HomePage: React.FC = () => {
         <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
           <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
         </div>
-        <UsersList users={users} />
+        <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
       </>
     )}
   </div>
@@ -195,13 +252,19 @@ export const HomePage: React.FC = () => {
       <ChatHeader />
 
         {/* display messages */}
-        {chattingWith && (
-          <MessagesDisplay />
+        {chattingWith && !openGlobalChat && <MessagesDisplay />}
+
+        {/* Message and image input */}
+        {chattingWith && !openGlobalChat && (
+          <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket={socket} />
         )}
 
-        {/* message and image input */}
-        {chattingWith && (
-          <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket ={socket} />
+        {/* global chat */}
+        {openGlobalChat && (
+          <>
+            <SendMessageGlobal globalMessage={globalMessage} setGlobalMessage={setGlobalMessage} socket={socket} />
+            <DisplayGlobalMessages />
+          </>
         )}
       </section>
     </div>
