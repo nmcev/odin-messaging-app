@@ -1,21 +1,19 @@
 import React, { useContext, useState, useEffect } from 'react';
 import loginSide from '../assets/loginSide.png';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { HomePage } from './HomePage';
 
 
-  const LoginPage: React.FC = () => {
+  const LoginPage: React.FC = (): React.ReactNode => {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const authContext = useContext(AuthContext)
     const [isVisible, setIsVisible] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    if (!authContext) {
-      return;
-    }
-    
-    const { login, errors, message, isValid } =authContext
+    const { login, errors, message } = authContext!;
+
 
 
     useEffect(() => {
@@ -34,8 +32,8 @@ import { AuthContext } from '../context/AuthContext';
 
     }
       
-    if (isValid) {
-      navigate('/homepage')
+    if (authContext && authContext.isValid) {
+      return <><Navigate to={'/homepage'} replace={true} /></>
     }
       
   
