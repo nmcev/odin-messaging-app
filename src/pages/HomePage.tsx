@@ -64,7 +64,6 @@ export const HomePage: React.FC = () => {
 
     newSocket.on('connect', () => {
       setSocket(newSocket);
-      console.log(newSocket.connected);
 
     });
     newSocket.emit('register', authContext.currentUser.user._id);
@@ -110,7 +109,6 @@ export const HomePage: React.FC = () => {
             return [...prevMessages, receivedMessage];
           }); 
         
-          console.log(receivedMessage);
     
         });
     return () => {
@@ -159,7 +157,6 @@ export const HomePage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
           setGlobalMessages(data);
         }
       } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 
@@ -66,7 +66,6 @@ export const DisplayGlobalMessages = () => {
         if (showDate && msg.sendAt) {
           lastDisplayDate = messageDate;
         }
-        console.log(msg)
 
         return (
           <React.Fragment key={index}>
