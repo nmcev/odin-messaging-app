@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,15 +10,16 @@ interface GlobalMessage {
 }
 
 interface Sender {
-    _id: string;
-    profilePic: string;
-    username: string;
+  _id: string;
+  profilePic: string;
+  username: string;
 }
 
 export const DisplayGlobalMessages = () => {
   const { globalMessages } = useContext(UserContext)!;
   const { currentUser } = useContext(AuthContext)!;
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -27,6 +28,19 @@ export const DisplayGlobalMessages = () => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [globalMessages]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedImage(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const chatContainerStyle: React.CSSProperties = {
     height: 'calc(100vh - 6rem)',
@@ -109,7 +123,12 @@ export const DisplayGlobalMessages = () => {
                 </p>
                 {msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                   <>
-                    <img src={msg.content} alt='content' className='w-72 h-72 object-cover rounded-lg mt-2' />
+                    <img
+                      src={msg.content}
+                      alt='content'
+                      className='w-72 h-72 object-cover rounded-lg mt-2 cursor-pointer'
+                      onClick={() => setSelectedImage(msg.content)}
+                    />
                     <p className='text-xs text-gray-500 dark:text-white mt-1'>
                       {msg.sendAt && displayTime(msg.sendAt)}
                     </p>
@@ -125,6 +144,19 @@ export const DisplayGlobalMessages = () => {
           </React.Fragment>
         );
       })}
+      {selectedImage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="relative">
+            <img src={selectedImage} alt="preview" className="max-w-full max-h-full object-contain" />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-2 right-2 bg-white text-black p-2 rounded-full"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
