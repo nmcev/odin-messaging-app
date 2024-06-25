@@ -1,11 +1,11 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 
-const debounce = (func: (...args: any[]) => void, wait: number) => {
+const debounce = (func: (...args: unknown[]) => void, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>;
-  return (...args: any[]) => {
+  return (...args: unknown[]) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      func.apply(null, args);
+      func(...args);
     }, wait);
   };
 };
@@ -19,31 +19,39 @@ const SearchBar: React.FC<SearchBarProps>= ({ setResults }) => {
   const [ query, setQuery ] = useState('');
 
 
-  const handleSearch = async (query: string) => {
-    if (!query) {
-      setResults([]);
-      return;
-    }
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/search?query=${query}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setResults(data);
-    } catch (error) {
-      console.error('Error fetching search results:', error);
-      setResults([]);
-    }
-  };
 
-  const debouncedSearch = useCallback(debounce(handleSearch, 300), []);
+  const debouncedSearch = useCallback(() => {
+    debounce(() => {
+      const handleSearch = async (query: string) => {
+        if (!query) {
+          setResults([]);
+          return;
+        }
+    
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/search?query=${query}`);
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          setResults(data);
+        } catch (error) {
+          console.error('Error fetching search results:', error);
+          setResults([]);
+        }
+      };
+
+      handleSearch(query);
+    }, 500)
+  }, [query, setResults,])
+    
+  
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newQuery: string = e.target.value;
     setQuery(newQuery);
-    debouncedSearch(newQuery);
+    debouncedSearch();
   };
 
   return (
