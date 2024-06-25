@@ -147,7 +147,7 @@ export const DisplayGlobalMessages = () => {
       {selectedImage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
           <div className="relative">
-          <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg bg-slate-500 dark:bg-slate-100  cursor-pointer'>
+          <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg bg-white dark:bg-gray-800  cursor-pointer'>
                    <img src={selectedImage} alt='preview'
                     className='max-w-full max-h-full object-contain cursor-pointer' 
                     onClick={() => setSelectedImage(null)}
