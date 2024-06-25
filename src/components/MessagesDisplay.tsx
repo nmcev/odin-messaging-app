@@ -154,7 +154,9 @@ export const MessagesDisplay = () => {
         <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-75'>
           <div className='relative'>
             <div className=' max-w-screen-sm max-h-screen-lg p-4 bg-white dark:bg-gray-800 rounded-lg '>
-              <img src={selectedImage} alt='preview' className='max-w-full max-h-full object-contain' />
+              <img src={selectedImage} alt='preview' className='max-w-full max-h-full object-contain cursor-pointer'
+              onClick={() => setSelectedImage(null)}
+               />
             </div>
             <button
               onClick={() => setSelectedImage(null)}
