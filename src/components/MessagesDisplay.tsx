@@ -1,19 +1,32 @@
-import React, { useContext } from 'react'
-import { UserContext } from '../context/UserContext'
-
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 export const MessagesDisplay = () => {
 
     const { chattingWith, messages } = useContext(UserContext)!;
     const { currentUser } = useContext(AuthContext)!;
 
-    const chatContainerRef = React.useRef<HTMLDivElement>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (chatContainerRef.current) {
           chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
       }, [messages, chattingWith]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedImage(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
     const chatContainerStyle: React.CSSProperties = {
         height: 'calc(100vh - 6rem)',
@@ -80,7 +93,6 @@ export const MessagesDisplay = () => {
           }
 
         <div
-          key={index}
           className={`flex gap-2 ${
             msg.sender === currentUser?.user._id ? 'flex-row-reverse' : 'flex-row'
           } items-center mb-4`}
@@ -104,7 +116,13 @@ export const MessagesDisplay = () => {
             {
               msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                 <>
-                  <img src={msg.content} alt='content' className='w-72 h-72 object-cover rounded-lg mt-2' />
+                 <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg  cursor-pointer'>
+                   <img src={msg.content} alt='preview'
+                    className='max-w-full max-h-full object-contain' 
+                    onClick={() => setSelectedImage(msg.content)}
+                    />
+                </div>
+  
                   <p className='text-xs text-gray-500 dark:text-white mt-1'>
                     {msg.sendAt && displayTime(msg.sendAt)}
                   </p>
@@ -132,6 +150,21 @@ export const MessagesDisplay = () => {
         </h1>
       </div>
     )}
-  </div>
-    )
-}
+      {selectedImage && (
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-75'>
+          <div className='relative'>
+            <div className=' max-w-screen-sm max-h-screen-lg p-4 bg-white dark:bg-gray-800 rounded-lg '>
+              <img src={selectedImage} alt='preview' className='max-w-full max-h-full object-contain' />
+            </div>
+            <button
+              onClick={() => setSelectedImage(null)}
+              className='absolute top-2 right-2 bg-white text-black p-2 rounded-full'
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
