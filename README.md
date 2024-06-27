@@ -1,6 +1,6 @@
 ## TalkMate Messaging App 
 
-TalkMate is a messaging app that allows users to chat with their friends and globally. Users can create an account, and chat with their friends. Users can also chat with other users globally.
+TalkMate is a messaging app and an assignment along The Odin Project specifically NodeJs that allows users to chat with their friends and globally. Users can create an account, and chat with their friends. Users can also chat with other users globally.
 
 ## Features
 - Create an account
