@@ -220,7 +220,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className=' flex w-screen max-md:flex-col'>
 
-<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] p-2 border-r-[1px] border-neutral-100 max-w-24 w-full max-md:max-w-screen-md'>
+<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] p-2 border-r-[1px] border-neutral-500 max-w-24 w-full max-md:max-w-screen-md'>
         <div className='flex sm:flex-col-reverse items-center max-sm:justify-center gap-8'>
           <img
             src={usersIcon}
