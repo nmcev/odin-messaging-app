@@ -5,8 +5,8 @@
 /* Scrollbar Styling */
 /* variables */
 :root {
-  --primary: #2b2b2b;
-  --secondary: #e2cf64e7;
+  --primary: #747474;
+  --secondary: #96969683;
 }
 * {
   scrollbar-width: thin; 
