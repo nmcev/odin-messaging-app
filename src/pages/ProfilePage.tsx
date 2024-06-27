@@ -87,6 +87,7 @@ export const ProfilePage: React.FC = () => {
                 type="file"
                 onChange={handleImageChange}
                 className="hidden"
+                accept="image/*"
               />
             </label>
           </div>
