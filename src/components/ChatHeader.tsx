@@ -10,7 +10,7 @@ export const ChatHeader:React.FC = () => {
     const { chattingWith } = userContext
   return (
    
- <header className='bg-gray-200 dark:bg-[#1b1b1b] p-4 flex items-center justify-between top-0 absolute w-full shadow-lg'>
+ <header className='bg-gray-200 dark:bg-[#181A1B] p-4 flex items-center justify-between top-0 absolute w-full'>
     {chattingWith ? (
         <div className='flex items-center cursor-pointer' onClick={() => navigate(`/user/${chattingWith.username}`)} >
             <div className='w-12 h-12'>
