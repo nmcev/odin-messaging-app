@@ -218,14 +218,14 @@ export const HomePage: React.FC = () => {
   };
   
   return (
-    <div className='grid md:grid-cols-12 w-screen grid-cols-1'>
+    <div className=' flex w-screen max-md:flex-col'>
 
-<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] md:col-span-1 max-sm:max-h-14 h-screen border-r-[1px] border-neutral-100'>
-        <div className='flex md:flex-col items-center max-sm:justify-center gap-8'>
+<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] p-2 border-r-[1px] border-neutral-100 max-w-24 w-full max-md:max-w-screen-md'>
+        <div className='flex sm:flex-col-reverse items-center max-sm:justify-center gap-8'>
           <img
             src={usersIcon}
             alt='users icon'
-            className={`w-8 h-8 cursor-pointer ${isUsersOpen ? 'text-blue-500' : ''}`}
+            className={`w-8 h-8 cursor-pointer ${isUsersOpen ? 'p-[2px]' : ''}`}
             onClick={() => {
               setIsUsersOpen(true);
               setIsChatsOpen(false);
@@ -234,7 +234,7 @@ export const HomePage: React.FC = () => {
           <img
             src={chatsIcon}
             alt='chats icon'
-            className={`w-8 h-8 cursor-pointer ${isChatsOpen ? 'text-blue-500' : ''}`}
+            className={`w-8 h-8 cursor-pointer ${isChatsOpen ? 'p-[2px]' : ''}`}
             onClick={() => {
               setIsUsersOpen(false);
               setIsChatsOpen(true);
@@ -244,11 +244,11 @@ export const HomePage: React.FC = () => {
       </aside>
 
       {/* Chats section */}
-      <section className='flex flex-col min-h-screen md:col-span-3 col-span-1 bg-gray-200 dark:bg-[#181A1B] relative border-r-[1px] border-gray-500' style={chatContainerStyle}>
+      <section className='flex flex-col min-h-screen  bg-gray-200 dark:bg-[#181A1B] relative border-r-[1px] border-gray-500' style={chatContainerStyle}>
   <SearchBar setResults={setResults} />
   <SearchResult results={results} />
 
-  <div className='flex flex-col gap-4 flex-grow'>
+  <div className='flex flex-col gap-4 '>
   { isChatsOpen ? (
     
     <>
@@ -293,7 +293,7 @@ export const HomePage: React.FC = () => {
 
 
       {/* chat section */}
-      <section className='md:col-span-8 dark:bg-[#181A1B] relative'>
+      <section className=' flex-1 dark:bg-[#181A1B] relative'>
       <ChatHeader />
 
         {/* display messages */}
