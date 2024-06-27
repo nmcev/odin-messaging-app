@@ -1,8 +1,6 @@
 ## TalkMate Messaging App 
 
 TalkMate is a messaging app that allows users to chat with their friends and globally. Users can create an account, and chat with their friends. Users can also chat with other users globally.
-## Usage
-You can start using the app by visiting the [TalkMate](https://talkmate.muha.tech) website. You can create an account, and start chatting with your friends and other users globally.
 
 ## Features
 - Create an account
@@ -14,6 +12,9 @@ You can start using the app by visiting the [TalkMate](https://talkmate.muha.tec
 - User profile
 - Update user profile picture
 
+
+## Usage
+You can start using the app by visiting the [TalkMate](https://talkmate.muha.tech) website. You can create an account, and start chatting with your friends and other users globally.
 
 - Login with your username and password
 
