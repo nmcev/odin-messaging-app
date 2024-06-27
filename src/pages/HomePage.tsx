@@ -12,7 +12,9 @@ import  globalIcon from '../assets/global.svg';
 import { io, Socket } from 'socket.io-client';
 import { SendMessageGlobal } from '../components/SendMessageGlobal';
 import { DisplayGlobalMessages } from '../components/DisplayGlobalMessages';
-
+import { UserStatus } from '../components/UserStatus';
+import usersIcon from '../assets/users.svg';
+import chatsIcon from '/chat.svg';
 
 interface Message {
   content: string;
@@ -55,67 +57,79 @@ export const HomePage: React.FC = () => {
   const { chattingWith, setMessages, setGlobalMessages, setChattingWith } = useContext(UserContext)!;
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
   const [openGlobalChat, setOpenGlobalChat] = useState<boolean>(false);
-    
-
+  const [ onlineUsers, setOnlineUsers] = useState<User[]>([]);
+  const [ offlineUsers, setOfflineUsers] = useState<User[]>([]);
+  const [ isUsersOpen,  setIsUsersOpen] = useState<boolean>(false);
+  const [isChatsOpen, setIsChatsOpen] = useState<boolean>(true);
 
     // socket connection
-  useEffect(() => {
-    const newSocket = io(API_URL);
-
-    newSocket.on('connect', () => {
-      setSocket(newSocket);
-
-    });
-    newSocket.emit('register', authContext.currentUser.user._id);
-
-    // check connection status
+    useEffect(() => {
+      const newSocket = io(API_URL);
     
-    newSocket.on('receiveMessage', (receivedMessage: Message) => {
-      setUsers((prevUsers) => {
-        const updatedUsers = prevUsers.map((user) => {
-          if (user._id === receivedMessage.sender) {
-            return {
-              ...user,
-              lastMessage: receivedMessage.content,
-              lastMessageSendAt: receivedMessage.sendAt,
-            };
-          }
-          return user;
+      newSocket.on('connect', () => {
+        setSocket(newSocket);
+        newSocket.emit('register', authContext.currentUser.user._id);
+    
+        newSocket.on('onlineUsers', (users: User[]) => {
+          setOnlineUsers(users);
         });
-
-        updatedUsers.sort((a, b) => {
-          return new Date(b.lastMessageSendAt).getTime() - new Date(a.lastMessageSendAt).getTime();
+    
+        newSocket.on('offlineUsers', (users: User[]) => {
+          setOfflineUsers(users);
         });
-        
-        return updatedUsers;
-      }
-      );
-
-
-
-      setMessages((prevMessages: Record<string, Message[]>) => ({
-        ...prevMessages,
-        [receivedMessage.sender.toString()]: [
-          ...(prevMessages[receivedMessage.sender.toString()] || []),
-          receivedMessage,
-        ],
-      }));
-    });
-
-        //receive global message
+    
+        newSocket.on('receiveMessage', (receivedMessage: Message) => {
+          setUsers((prevUsers) => {
+            const updatedUsers = prevUsers.map((user) => {
+              if (user._id === receivedMessage.sender) {
+                return {
+                  ...user,
+                  lastMessage: receivedMessage.content,
+                  lastMessageSendAt: receivedMessage.sendAt,
+                };
+              }
+              return user;
+            });
+    
+            updatedUsers.sort((a, b) => {
+              return new Date(b.lastMessageSendAt).getTime() - new Date(a.lastMessageSendAt).getTime();
+            });
+            
+            return updatedUsers;
+          });
+    
+          setMessages((prevMessages: Record<string, Message[]>) => ({
+            ...prevMessages,
+            [receivedMessage.sender.toString()]: [
+              ...(prevMessages[receivedMessage.sender.toString()] || []),
+              receivedMessage,
+            ],
+          }));
+        });
+    
         newSocket.on('receiveGlobalMessage', (receivedMessage: GlobalMessage) => {
-
           setGlobalMessages((prevMessages) => {
             return [...prevMessages, receivedMessage];
-          }); 
-        
-    
+          });
         });
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [authContext.currentUser.user._id, setMessages]);
-
+    
+        newSocket.on('disconnect', () => {
+          console.log('Socket disconnected');
+        });
+    
+        return () => {
+          newSocket.off('connect');
+          newSocket.off('onlineUsers');
+          newSocket.off('offlineUsers');
+          newSocket.off('receiveMessage');
+          newSocket.off('receiveGlobalMessage');
+          newSocket.off('disconnect');
+          newSocket.disconnect();
+        };
+      });
+    }, [authContext.currentUser.user._id, setGlobalMessages, setMessages]);
+    
+    
 // fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
@@ -204,14 +218,41 @@ export const HomePage: React.FC = () => {
   };
   
   return (
-    <div className='grid md:grid-cols-8 w-screen grid-cols-1'>
+    <div className='grid md:grid-cols-12 w-screen grid-cols-1'>
+
+<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] md:col-span-1 max-sm:max-h-14 h-screen border-r-[1px] border-neutral-100'>
+        <div className='flex md:flex-col items-center max-sm:justify-center gap-8'>
+          <img
+            src={usersIcon}
+            alt='users icon'
+            className={`w-8 h-8 cursor-pointer ${isUsersOpen ? 'text-blue-500' : ''}`}
+            onClick={() => {
+              setIsUsersOpen(true);
+              setIsChatsOpen(false);
+            }}
+          />
+          <img
+            src={chatsIcon}
+            alt='chats icon'
+            className={`w-8 h-8 cursor-pointer ${isChatsOpen ? 'text-blue-500' : ''}`}
+            onClick={() => {
+              setIsUsersOpen(false);
+              setIsChatsOpen(true);
+            }}
+          />
+        </div>
+      </aside>
+
       {/* Chats section */}
-      <section className='flex flex-col min-h-screen md:col-span-2 col-span-1 bg-gray-200 dark:bg-[#181A1B] relative border-r-[1px] border-gray-500' style={chatContainerStyle}>
+      <section className='flex flex-col min-h-screen md:col-span-3 col-span-1 bg-gray-200 dark:bg-[#181A1B] relative border-r-[1px] border-gray-500' style={chatContainerStyle}>
   <SearchBar setResults={setResults} />
   <SearchResult results={results} />
 
   <div className='flex flex-col gap-4 flex-grow'>
-    {/* Global chat */}
+  { isChatsOpen ? (
+    
+    <>
+
     {results.length === 0 && (
       <>
         <div className='border-b-[1px] border-gray-300 w-96 ml-10'>
@@ -227,16 +268,23 @@ export const HomePage: React.FC = () => {
         </section>
       </>
     )}
+    
 
-    {/* Display users */}
-    {users.length > 0 && !results.length && (
-      <>
-        <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
-          <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
-        </div>
-        <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
+
+        {/* Display users */}
+        {users.length > 0 && !results.length && (
+          <>
+            <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+              <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
+            </div>
+            <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
+          </>
+        )}
       </>
+    ) : (
+      <UserStatus onlineUsers={onlineUsers} offlineUsers={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} results={results} />
     )}
+
   </div>
 
 
@@ -245,7 +293,7 @@ export const HomePage: React.FC = () => {
 
 
       {/* chat section */}
-      <section className='md:col-span-6 dark:bg-[#181A1B] relative'>
+      <section className='md:col-span-8 dark:bg-[#181A1B] relative'>
       <ChatHeader />
 
         {/* display messages */}
@@ -256,7 +304,6 @@ export const HomePage: React.FC = () => {
           <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket={socket} />
         )}
 
-        {/* global chat */}
         {openGlobalChat && (
           <>
             <SendMessageGlobal globalMessage={globalMessage} setGlobalMessage={setGlobalMessage} socket={socket} />
@@ -264,6 +311,8 @@ export const HomePage: React.FC = () => {
           </>
         )}
       </section>
+
+      
     </div>
   );
 };
