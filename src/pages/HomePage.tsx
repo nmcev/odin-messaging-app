@@ -127,7 +127,7 @@ export const HomePage: React.FC = () => {
           newSocket.disconnect();
         };
       });
-    }, [authContext.currentUser.user._id, setGlobalMessages, setMessages]);
+    }, [authContext.currentUser.user._id, setGlobalMessages, setMessages, isUsersOpen, isChatsOpen]);
     
     
 // fetch messages
