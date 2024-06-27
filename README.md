@@ -1,30 +1,66 @@
-# React + TypeScript + Vite
+## TalkMate Messaging App 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TalkMate is a messaging app that allows users to chat with their friends and globally. Users can create an account, and chat with their friends. Users can also chat with other users globally.
+## Usage
+You can start using the app by visiting the [TalkMate](https://talkmate.muha.tech) website. You can create an account, and start chatting with your friends and other users globally.
 
-Currently, two official plugins are available:
+## Features
+- Create an account
+- Chat with friends
+- Chat with other users globally
+- Send images
+- Dark mode
+- Online and offline users
+- User profile
+- Update user profile picture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
+- Login with your username and password
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+  <img src="./src/assets/image.png"  width="850px" alt="talkmate" />
 
-- Configure the top-level `parserOptions` property like this:
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+- Create an account if you don't have one
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+  <img src="./src/assets/image2.png"  width="850px" alt="talkmate" />
+
+- Chat with your friends
+  
+    <img src="./src/assets/image3.png"  width="850px" alt="talkmate" />
+
+- Chat with other users globally
+      
+    <img src="./src/assets/image4.png"  width="850px" alt="talkmate" />
+
+- Send images
+
+    <img src="./src/assets/image5.png"  width="850px" alt="talkmate" />
+
+- User profile
+
+    <img src="./src/assets/image6.png"  width="850px" alt="talkmate" />
+
+- Light mode
+
+    <img src="./src/assets/image7.png"  width="850px" alt="talkmate" />
+
+- Current user profile
+
+    <img src="./src/assets/image8.png"  width="850px" alt="talkmate" />
+
+
+
+## Technologies
+- ReactJs
+- ExpressJs
+- NodeJs
+- MongoDB
+- Socket.io
+- TailwindCSS
+- AWS S3
+
+
+## Extra credit 
+extra credit from The Odin Project: 
+- Sending images 
+- Users list to show which users are currently online
