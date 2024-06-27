@@ -23,23 +23,6 @@ export const OnlineUsersList: React.FC<UsersListProps> = ({ users, setOpenGlobal
         setOpenGlobalChat(false);
     };
 
-    const formatLastMessage = (timestamp: string): string => {
-        const date = new Date(timestamp);
-        const now = new Date();
-
-        const diff = now.getTime() - date.getTime();
-        const hoursDiff = diff / (1000 * 60 * 60);
-
-        if (hoursDiff < 24) {
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes}`;
-        } else {
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            return `${day}/${month}`;
-        }
-    };
 
     return (
         <section className="flex flex-col gap-8 pl-10 mt-4 ">
