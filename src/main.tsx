@@ -8,11 +8,13 @@ import { PrivateRoute } from './lib/PrivateRoute.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { HomePage } from './pages/HomePage.tsx';
 import  { ProfilePage }  from './pages/ProfilePage.tsx';
+import { NotFound } from './pages/NotFound.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <NotFound />,
 
     children: [
       {
