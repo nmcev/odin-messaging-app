@@ -66,7 +66,6 @@ export const HomePage: React.FC = () => {
     useEffect(() => {
       const newSocket = io(API_URL);
     
-      newSocket.on('connect', () => {
         setSocket(newSocket);
         newSocket.emit('register', authContext.currentUser.user._id);
     
@@ -118,7 +117,6 @@ export const HomePage: React.FC = () => {
         });
     
         return () => {
-          newSocket.off('connect');
           newSocket.off('onlineUsers');
           newSocket.off('offlineUsers');
           newSocket.off('receiveMessage');
@@ -126,7 +124,6 @@ export const HomePage: React.FC = () => {
           newSocket.off('disconnect');
           newSocket.disconnect();
         };
-      });
     }, [authContext.currentUser.user._id, setGlobalMessages, setMessages]);
     
     
