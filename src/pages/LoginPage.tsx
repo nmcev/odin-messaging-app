@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import loginSide from '../assets/loginSide.png';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 
   const LoginPage: React.FC = (): React.ReactNode => {
@@ -31,8 +32,12 @@ import { AuthContext } from '../context/AuthContext';
 
     }
       
+    if (authContext && authContext.isValid === undefined) {
+       return <LoadingSpinner />;
+      } 
+
     if (authContext && authContext.isValid) {
-      return <><Navigate to={'/homepage'} replace={true} /></>
+      return <><Navigate to={'/homepage'} replace /></>
     }
       
   
