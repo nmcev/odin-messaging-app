@@ -23,7 +23,7 @@ interface AuthContextType {
     validateToken: () => Promise<boolean>;
     message: string | string,
     currentUser: Data;
-    isValid: boolean;
+    isValid: boolean | undefined;
     setCurrentUser?: React.Dispatch<React.SetStateAction<Data>>;
 
 }
@@ -49,8 +49,7 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const [ message, setMessage ] = useState<string>('')
     const [currentUser, setCurrentUser] = useState<Data>(initialUser);
     const navigate = useNavigate();
-    const [ isValid, setIsValid ] = useState<boolean>(false);
-
+    const [isValid, setIsValid] = useState<boolean | undefined>(undefined);
 
 
 
