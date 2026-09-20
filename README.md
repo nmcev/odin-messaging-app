@@ -14,7 +14,7 @@ TalkMate is a messaging app and an assignment along The Odin Project specificall
 
 
 ## Usage
-You can start using the app by visiting the [TalkMate](https://talkmate.muha.tech) website. You can create an account, and start chatting with your friends and other users globally.
+You can start using the app by visiting the [TalkMate](https://talkmate-odin.netlify.app) website. You can create an account, and start chatting with your friends and other users globally.
 
 - Login with your username and password
 
