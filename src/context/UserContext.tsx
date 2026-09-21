@@ -1,4 +1,5 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useContext } from 'react';
+import { AuthContext } from './AuthContext';
 
 interface User {
   username: string;
@@ -63,11 +64,17 @@ const UserContextProvider: React.FC<UserContextProviderProps> = ({ children }) =
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [globalMessages, setGlobalMessages] = useState<GlobalMessage[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const authContext = useContext(AuthContext)!;
 
   const fetchUsers = async (currentUser:  User  ) => {
     try {
 
-      const response = await fetch(`${API_URL}/api/chats/${currentUser._id}`);
+      const response = await fetch(`${API_URL}/api/chats/${currentUser?._id}`, {
+        headers: {
+          'Authorization': `${authContext.token}`
+        }
+        
+      });
 
       if (response.ok) {
         const data: User[] = await response.json();
