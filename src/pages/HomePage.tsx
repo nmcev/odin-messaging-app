@@ -64,7 +64,7 @@ export const HomePage: React.FC = () => {
 
     // socket connection
     useEffect(() => {
-      const newSocket = io(API_URL);
+      const newSocket = io(API_URL, { auth: { token: authContext.token } });
     
         setSocket(newSocket);
         newSocket.emit('register', authContext.currentUser.user._id);
