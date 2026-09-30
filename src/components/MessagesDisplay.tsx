@@ -114,7 +114,7 @@ export const MessagesDisplay = () => {
             <p className='text-sm poppins-bold'>{msg.sender === currentUser?.user._id ? 'You' : chattingWith.username}</p>
             {/* render if the content is image */}
             {
-              msg.content.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
+              msg.content.startsWith('https://res.cloudinary.com/dw') ? (
                 <>
                  <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg  cursor-pointer'>
                    <img src={msg.content} alt='preview'
