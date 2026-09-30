@@ -67,7 +67,6 @@ export const HomePage: React.FC = () => {
       const newSocket = io(API_URL, { auth: { token: authContext.token } });
     
         setSocket(newSocket);
-        newSocket.emit('register', authContext.currentUser.user._id);
     
         newSocket.on('onlineUsers', (users: User[]) => {
           setOnlineUsers(users);
