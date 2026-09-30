@@ -124,7 +124,7 @@ export const HomePage: React.FC = () => {
           newSocket.off('disconnect');
           newSocket.disconnect();
         };
-    }, [authContext.currentUser.user._id, setGlobalMessages, setMessages]);
+    }, [authContext.currentUser.user._id, authContext.token, setGlobalMessages, setMessages]);
     
     
 // fetch messages
