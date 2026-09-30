@@ -180,11 +180,18 @@ export const HomePage: React.FC = () => {
   }, [authContext.token, setGlobalMessages]);
 
 
+  const token = localStorage.getItem('token');
 // fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/chats/${currentUser?.user._id}`);
+        const response = await fetch(`${API_URL}/api/chats/${currentUser?.user._id}`
+          ,{
+            headers: {
+              Authorization: `${token}`,
+            }
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -198,7 +205,7 @@ export const HomePage: React.FC = () => {
     if (currentUser) {
       fetchUsers();
     }
-  }, [currentUser, results]);
+  }, [currentUser, results, token]);
 
 
 
@@ -269,12 +276,20 @@ export const HomePage: React.FC = () => {
 
 
         {/* Display users */}
-        {users.length > 0 && !results.length && (
+        {users.length > 0 && !results.length ? (
           <>
             <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
               <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
             </div>
             <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-500 w-96 text-center">
+                Starts a conversation by searching for a user or clicking on the global chat.
+              </p>
+            </div>
           </>
         )}
       </>
