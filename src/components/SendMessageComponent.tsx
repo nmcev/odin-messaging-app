@@ -94,72 +94,80 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   };
 
   // handle sending image
-  const handleSendImage = async () => {
-    if (selectedImage) {
-      try {
-        const response = await fetch(`${API_URL}/api/upload`);
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
-        }
+const handleSendImage = async () => {
+  if (!selectedImage || !chattingWith) return;
 
-        const { url } = await response.json();
+  try {
+    const formData = new FormData();
+    formData.append('file', selectedImage);
 
-        const imgUrlResponse = await fetch(url, {
-          method: 'PUT',
-          body: selectedImage,
-          headers: {
-            'Content-Type': selectedImage.type,
-          },
-        });
+        const token = localStorage.getItem('token');
 
-        if (!imgUrlResponse.ok) {
-          throw new Error('Failed to upload image');
-        }
+    const response = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `${token}`,
+      },
+      body: formData,
+    });
 
-        const updatedImageUrl = url.split('?')[0];
-
-        const newMessage: Message = {
-          content: updatedImageUrl,
-          sender: authContext.currentUser!.user._id,
-          receiver: chattingWith!._id,
-          sendAt: new Date().toISOString(),
-        };
-
-        socket?.emit('sendMessage', newMessage);
-
-        setUsers?.((prevUsers) => {
-          const updatedUsers = prevUsers.map((user) => {
-            if (user._id === chattingWith!._id) {
-              return {
-                ...user,
-                lastMessage: 'Image',
-                lastMessageSendAt: new Date().toISOString(),
-              };
-            }
-            return user;
-          });
-
-          const chattingUser = updatedUsers.find((user) => user._id === chattingWith!._id);
-          if (chattingUser) {
-            const otherUsers = updatedUsers.filter((user) => user._id !== chattingWith!._id);
-            return [chattingUser, ...otherUsers];
-          }
-
-          return updatedUsers;
-        });
-
-        setMessages((prevMessages) => ({
-          ...prevMessages,
-          [chattingWith!._id]: [...prevMessages[chattingWith!._id], newMessage],
-        }));
-
-        setSelectedImage(null);
-      } catch (error) {
-        console.error(error);
-      }
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Upload failed: ${error}`);
     }
-  };
 
+    const { url } = await response.json();
+
+    const newMessage: Message = {
+      content: url,
+      sender: authContext.currentUser!.user._id,
+      receiver: chattingWith._id,
+      sendAt: new Date().toISOString(),
+    };
+
+    socket?.emit('sendMessage', newMessage);
+
+    setUsers?.((prevUsers) => {
+      const updatedUsers = prevUsers.map((user) => {
+        if (user._id === chattingWith._id) {
+          return {
+            ...user,
+            lastMessage: 'Image',
+            lastMessageSendAt: new Date().toISOString(),
+          };
+        }
+
+        return user;
+      });
+
+      const chattingUser = updatedUsers.find(
+        (user) => user._id === chattingWith._id
+      );
+
+      if (chattingUser) {
+        const otherUsers = updatedUsers.filter(
+          (user) => user._id !== chattingWith._id
+        );
+
+        return [chattingUser, ...otherUsers];
+      }
+
+      return updatedUsers;
+    });
+
+    setMessages((prevMessages) => ({
+      ...prevMessages,
+      [chattingWith._id]: [
+        ...prevMessages[chattingWith._id],
+        newMessage,
+      ],
+    }));
+
+    setSelectedImage(null);
+       } catch (error) {
+          console.error('Image upload error:', error);
+     }
+    };
   return (
     <footer className="absolute bottom-0 left-0 right-0 bg-[#181A1B]  text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
       <input

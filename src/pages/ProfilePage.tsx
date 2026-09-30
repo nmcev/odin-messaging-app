@@ -23,54 +23,64 @@ export const ProfilePage: React.FC = () => {
     return <UserPage username={username} />;
   }
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
+const handleImageChange = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/upload`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Image upload failed: ${errorText}`);
     }
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+    const { url } = await response.json();
 
-      const { url } = await response.json();
-
-      const imgUrlResponse = await fetch(url, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-
-      if (!imgUrlResponse.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const updatedImageUrl = url.split('?')[0];
-
-
-      await fetch(`${import.meta.env.VITE_API_URL}/api/profile`, {
+    await fetch(
+      `${import.meta.env.VITE_API_URL}/api/profile`,
+      {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `${token}`,
+          Authorization: `${token}`,
         },
-        body: JSON.stringify({ profilePic: updatedImageUrl }),
-      });
-
-
-      if (setCurrentUser) {
-        setCurrentUser({ ...currentUser, user: { ...currentUser.user, profilePic: updatedImageUrl } });
+        body: JSON.stringify({
+          profilePic: url,
+        }),
       }
+    );
 
-    } catch (error) {
-      console.error('Error uploading image:', error);
+    if (setCurrentUser) {
+      setCurrentUser({
+        ...currentUser,
+        user: {
+          ...currentUser.user,
+          profilePic: url,
+        },
+      });
     }
+  } catch (error) {
+    console.error('Error uploading image:', error);
   }
-
+};
   return (
     <section className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-100 dark:bg-[#2b2b2b] p-5">
       <div className="bg-white shadow-lg rounded-lg p-6 max-w-sm w-full">

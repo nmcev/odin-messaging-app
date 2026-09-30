@@ -74,47 +74,48 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
   };
 
   // handle sending image
-  const handleSendImage = async () => {
-    if (selectedImage) {
-      try {
-        const response = await fetch(`${API_URL}/api/upload`);
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
-        }
+ const handleSendImage = async () => {
+  if (!selectedImage) return;
 
-        const { url } = await response.json();
+  try {
+    const formData = new FormData();
+    formData.append('file', selectedImage);
 
-        const imgUrlResponse = await fetch(url, {
-          method: 'PUT',
-          body: selectedImage,
-          headers: {
-            'Content-Type': selectedImage.type,
-          },
-        });
+    const token = localStorage.getItem('token');
 
-        if (!imgUrlResponse.ok) {
-          throw new Error('Failed to upload image');
-        }
+    const response = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `${token}`,
+      },
+      body: formData,
+    });
 
-        const updatedImageUrl = url.split('?')[0];
-
-        const newMessage: GlobalMessage = {
-          content: updatedImageUrl,
-          sender: authContext.currentUser!.user,
-          sendAt: new Date().toISOString(),
-        };
-
-        socket?.emit('sendGlobalMessage', newMessage);
-
-        setGlobalMessages((prevMessages) => [...prevMessages, newMessage]);
-
-        setSelectedImage(null);
-      } catch (error) {
-        console.error(error);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to upload image: ${errorText}`);
     }
-  };
 
+    const { url } = await response.json();
+
+    const newMessage: GlobalMessage = {
+      content: url,
+      sender: authContext.currentUser!.user,
+      sendAt: new Date().toISOString(),
+    };
+
+    socket?.emit('sendGlobalMessage', newMessage);
+
+    setGlobalMessages((prevMessages) => [
+      ...prevMessages,
+      newMessage,
+    ]);
+
+    setSelectedImage(null);
+  } catch (error) {
+    console.error('Image upload error:', error);
+  }
+};
   return (
     <footer className="absolute bottom-0 left-0 right-0 bg-[#181A1B]  text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
       <input
