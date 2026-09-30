@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import editIcon from '../assets/edit.svg';
 import { UserPage } from './UserPage';
@@ -6,14 +6,13 @@ import { useParams } from 'react-router-dom';
 
 export const ProfilePage: React.FC = () => {
   const { username } = useParams();
-  const [token] = useState(localStorage.getItem('token'));
   const authContext = useContext(AuthContext);
 
   if (!authContext) {
     return null;
   }
 
-  const { currentUser, logout, setCurrentUser, isValid } = authContext;
+  const { currentUser, logout, setCurrentUser, isValid, token } = authContext;
 
   if (currentUser && currentUser.user.username !== username) {
     return <UserPage username={username} />;

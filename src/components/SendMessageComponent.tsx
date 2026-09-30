@@ -101,7 +101,7 @@ const handleSendImage = async () => {
     const formData = new FormData();
     formData.append('file', selectedImage);
 
-        const token = localStorage.getItem('token');
+    const token = authContext.token;
 
     const response = await fetch(`${API_URL}/api/upload`, {
       method: 'POST',
