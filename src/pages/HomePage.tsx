@@ -15,13 +15,7 @@ import { DisplayGlobalMessages } from '../components/DisplayGlobalMessages';
 import { UserStatus } from '../components/UserStatus';
 import usersIcon from '../assets/users.svg';
 import chatsIcon from '/chat.svg';
-
-interface Message {
-  content: string;
-  sender: string;
-  receiver: string;
-  sendAt: string;
-}
+import { Message } from '../types/Message';
 
 interface GlobalMessage {
   content: string;

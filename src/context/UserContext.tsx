@@ -1,18 +1,11 @@
 import React, { createContext, useState, ReactNode} from 'react';
-
+import { Message } from '../types/Message';
 interface User {
   username: string;
   _id: string;
   profilePic: string;
   lastMessage: string;
   lastMessageSendAt: string;
-}
-
-interface Message {
-  content: string;
-  sender: string;
-  receiver: string;
-  sendAt: string;
 }
 
 interface GlobalMessage {
