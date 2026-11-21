@@ -3,7 +3,7 @@ import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { Socket } from 'socket.io-client';
 import attachIcon from '../assets/attach.svg';
-
+import { Message } from '../types/Message';
 interface SendMessageComponentProps {
   message: string;
   setMessage: (message: string) => void;
@@ -21,12 +21,7 @@ interface User {
 
 const API_URL: string = import.meta.env.VITE_API_URL;
 
-interface Message {
-  content: string;
-  sender: string;
-  receiver: string;
-  sendAt: string;
-}
+
 
 export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   message,
@@ -38,7 +33,8 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   const { chattingWith, messages, setMessages } = useContext(UserContext)!;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-
+const [locating, setLocating] = useState(false);
+const [locationError, setLocationError] = useState<string | null>(null);
 
 
   // handle sending message
@@ -46,6 +42,7 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
     e.preventDefault();
     if (message.trim() && chattingWith && messages[chattingWith._id]) {
       const newMessage: Message = {
+        type: 'text',
         content: message,
         sender: authContext.currentUser!.user._id,
         receiver: chattingWith._id,
@@ -119,6 +116,7 @@ const handleSendImage = async () => {
     const { url } = await response.json();
 
     const newMessage: Message = {
+      type: 'image',
       content: url,
       sender: authContext.currentUser!.user._id,
       receiver: chattingWith._id,
@@ -168,6 +166,77 @@ const handleSendImage = async () => {
           console.error('Image upload error:', error);
      }
     };
+
+
+ const handleSendLocation = () => {
+  if (!chattingWith || locating) return;
+
+  if (!navigator.geolocation) {
+    setLocationError('Location is not supported by your browser.');
+    return;
+  }
+
+  setLocating(true);
+  setLocationError(null);
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      const now = new Date().toISOString();
+
+      const newMessage: Message = {
+        type: 'location',
+        content: 'Location', // the server sets this too
+        sender: authContext.currentUser!.user._id,
+        receiver: chattingWith._id,
+        sendAt: now,
+        location: { lat: latitude, lng: longitude },
+      };
+
+      socket?.emit('sendMessage', newMessage);
+
+      setUsers?.((prevUsers) => {
+        const updatedUsers = prevUsers.map((user) =>
+          user._id === chattingWith._id
+            ? { ...user, lastMessage: 'Location', lastMessageSendAt: now }
+            : user
+        );
+        const chattingUser = updatedUsers.find((u) => u._id === chattingWith._id);
+        if (chattingUser) {
+          const others = updatedUsers.filter((u) => u._id !== chattingWith._id);
+          return [chattingUser, ...others];
+        }
+        return updatedUsers;
+      });
+
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        [chattingWith._id]: [...(prevMessages[chattingWith._id] ?? []), newMessage],
+      }));
+
+      setLocating(false);
+    },
+    (error) => {
+      setLocating(false);
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          setLocationError('Location permission was denied. Allow it in your browser settings.');
+          break;
+        case error.POSITION_UNAVAILABLE:
+          setLocationError('Your location could not be determined.');
+          break;
+        case error.TIMEOUT:
+          setLocationError('Getting your location timed out. Try again.');
+          break;
+        default:
+          setLocationError('Could not get your location.');
+      }
+      setTimeout(() => setLocationError(null), 4000);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+};
+
   return (
     <footer className="absolute bottom-0 left-0 right-0 bg-[#181A1B]  text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
       <input
@@ -221,6 +290,22 @@ const handleSendImage = async () => {
         </dialog>
       )}
 
+
+      {locationError && (
+  <div className="absolute -top-9 left-4 bg-red-600 text-white text-xs px-3 py-1 rounded-lg">
+    {locationError}
+  </div>
+)}
+
+<button
+  type="button"
+  onClick={handleSendLocation}
+  disabled={locating}
+  title="Share current location"
+  className="text-2xl disabled:opacity-50"
+>
+  {locating ? '⏳' : '📍'}
+</button>
       {!selectedImage && (
         <button onClick={handleSubmit} className="bg-orange-500 text-white p-2 rounded-full">
           Send
