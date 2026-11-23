@@ -113,6 +113,17 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
             </span>
           )}
         </p>
+        {/* delivery status, only on my own messages */}
+        {isMine && kind !== 'expired' && !msg.failed && (
+          <p
+            className={`text-xs mt-0.5 text-right font-semibold ${
+              msg.readAt ? 'text-blue-800' : 'text-white/90'
+            }`}
+            title={msg.readAt ? `Read ${new Date(msg.readAt).toLocaleString()}` : undefined}
+          >
+            {!msg._id ? 'Sending…' : msg.readAt ? '✓✓ Read' : '✓ Sent'}
+          </p>
+        )}
         {msg.failed && (
           <p className="text-xs mt-1 font-semibold text-red-700 dark:text-red-300" role="alert">
             ⚠ Not sent

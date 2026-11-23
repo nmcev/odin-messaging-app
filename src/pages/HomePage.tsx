@@ -37,6 +37,13 @@ interface User {
   profilePic: string;
   lastMessage: string;
   lastMessageSendAt: string;
+  unreadCount?: number;
+}
+
+interface MessagesReadEvent {
+  reader: string;  // who opened the conversation
+  partner: string; // whose messages got read
+  readAt: string;
 }
 
 const API_URL: string = import.meta.env.VITE_API_URL;
@@ -91,6 +98,20 @@ export const HomePage: React.FC = () => {
   const fetchUsersRef = useRef(fetchUsers);
   fetchUsersRef.current = fetchUsers;
 
+  // the conversation currently on screen (null for the list or the global chat)
+  const activeChatId = !openGlobalChat && chattingWith ? chattingWith._id : null;
+  const activeChatIdRef = useRef<string | null>(activeChatId);
+  activeChatIdRef.current = activeChatId;
+
+  // only counts as read when the chat is open AND the tab is actually visible
+  const isReading = (partnerId: string) =>
+    activeChatIdRef.current === partnerId && document.visibilityState === 'visible';
+
+  const setUnread = (partnerId: string, update: (count: number) => number) =>
+    setUsers((prev) =>
+      prev.map((u) => (u._id === partnerId ? { ...u, unreadCount: update(u.unreadCount ?? 0) } : u))
+    );
+
     // socket connection
     useEffect(() => {
       const newSocket = io(API_URL, { auth: { token: authContext.token } });
@@ -111,6 +132,11 @@ export const HomePage: React.FC = () => {
             fetchUsersRef.current();
           }
 
+          const reading = isReading(receivedMessage.sender);
+          if (reading) {
+            newSocket.emit('markRead', { partner: receivedMessage.sender });
+          }
+
           setUsers((prevUsers) => {
             const updatedUsers = prevUsers.map((user) => {
               if (user._id === receivedMessage.sender) {
@@ -118,6 +144,7 @@ export const HomePage: React.FC = () => {
                   ...user,
                   lastMessage: receivedMessage.content,
                   lastMessageSendAt: receivedMessage.sendAt,
+                  unreadCount: reading ? 0 : (user.unreadCount ?? 0) + 1,
                 };
               }
               return user;
@@ -159,6 +186,31 @@ export const HomePage: React.FC = () => {
         );
       });
     
+        newSocket.on('messagesRead', (d: MessagesReadEvent) => {
+          const me = authContext.currentUser.user._id.toString();
+
+          if (d.reader === me) {
+            // I read this chat in another tab or device: clear the dot here too
+            setUnread(d.partner, () => 0);
+            return;
+          }
+
+          // the other person opened our chat: mark my confirmed messages sent up to then as read
+          const readTime = new Date(d.readAt).getTime();
+          setMessages((prev) => {
+            const list = prev[d.reader];
+            if (!list) return prev;
+            return {
+              ...prev,
+              [d.reader]: list.map((m) =>
+                m.sender === me && m._id && !m.readAt && new Date(m.sendAt).getTime() <= readTime
+                  ? { ...m, readAt: d.readAt }
+                  : m
+              ),
+            };
+          });
+        });
+
         newSocket.on('receiveGlobalMessage', (receivedMessage: GlobalMessage) => {
           setGlobalMessages((prevMessages) => {
             return [...prevMessages, receivedMessage];
@@ -173,14 +225,32 @@ export const HomePage: React.FC = () => {
           newSocket.off('onlineUsers');
           newSocket.off('offlineUsers');
           newSocket.off('receiveMessage');
-          newSocket.off('messageExpired');   
+          newSocket.off('messageExpired');
+          newSocket.off('messagesRead');
           newSocket.off('receiveGlobalMessage');
           newSocket.off('disconnect');
           newSocket.disconnect();
         };
     }, [authContext.currentUser.user._id, authContext.token, setGlobalMessages, setMessages]);
     
-    
+
+  // opening a chat (or coming back to the tab while one is open) marks it read
+  useEffect(() => {
+    if (!socket || !activeChatId) return;
+
+    const markRead = () => {
+      if (document.visibilityState !== 'visible') return;
+      socket.emit('markRead', { partner: activeChatId });
+      setUsers((prev) =>
+        prev.map((u) => (u._id === activeChatId && u.unreadCount ? { ...u, unreadCount: 0 } : u))
+      );
+    };
+
+    markRead();
+    document.addEventListener('visibilitychange', markRead);
+    return () => document.removeEventListener('visibilitychange', markRead);
+  }, [socket, activeChatId]);
+
 // fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
