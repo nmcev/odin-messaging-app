@@ -11,7 +11,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({ lat, lng }) => {
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
   return (
-    <div className="w-64 sm:w-72">
+    <div className="w-56 max-w-full sm:w-72">
       {/* relative z-0 keeps Leaflet's internal z-indexes below your modals */}
       <div className="relative z-0 h-40 rounded-lg overflow-hidden">
         <MapContainer

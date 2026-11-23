@@ -117,13 +117,13 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
   }
 };
   return (
-    <footer className="absolute bottom-0 left-0 right-0 bg-[#181A1B]  text-[#191919] py-3 px-4 flex items-center justify-between gap-5">
+    <footer className="relative shrink-0 bg-gray-200 dark:bg-[#181A1B] text-[#191919] pt-2 px-2 md:px-4 md:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-3 flex items-center gap-2 md:gap-4">
       <input
         value={globalMessage}
         onChange={(e) => setGlobalMessage(e.target.value)}
         type="text"
         placeholder="Type a message"
-        className="p-2 rounded-full w-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#121212] dark:text-white"
+        className="py-2 px-4 rounded-full flex-1 min-w-0 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#121212] dark:text-white"
         onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               handleSubmit(e);
@@ -132,8 +132,8 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
       />
 
       {/* Input to send image */}
-      <label htmlFor="image" className="cursor-pointer">
-        <img src={attachIcon} alt="image" className="w-8 h-8" />
+      <label htmlFor="image" className="cursor-pointer shrink-0 p-1">
+        <img src={attachIcon} alt="image" className="w-7 h-7 md:w-8 md:h-8" />
         <input
           id="image"
           type="file"
@@ -147,11 +147,11 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
       {/* image dialog to preview image */}
       {selectedImage && (
         <dialog className="fixed inset-0 flex items-center justify-center backdrop-blur-sm backdrop-brightness-75 backdrop-opacity-75 backdrop-saturate-150" >
-        <div className="bg-[#2b2b2b] rounded-2xl p-8">
+        <div className="bg-[#2b2b2b] rounded-2xl p-4 sm:p-8 mx-4 max-w-[calc(100vw-2rem)]">
             <img
               src={URL.createObjectURL(selectedImage)}
               alt="preview"
-              className="w-64 h-64 object-cover rounded-lg mb-4 border-white  border-2"
+              className="w-full max-w-64 sm:w-64 aspect-square object-cover rounded-lg mb-4 border-white  border-2"
             />
             <button
               onClick={handleSendImage}
@@ -170,7 +170,7 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
       )}
 
       {!selectedImage && (
-        <button onClick={handleSubmit} className="bg-orange-500 text-white p-2 rounded-full">
+        <button onClick={handleSubmit} className="shrink-0 bg-orange-500 text-white py-2 px-4 rounded-full">
           Send
         </button>
       )}

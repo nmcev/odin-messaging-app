@@ -36,15 +36,15 @@ export const SearchResult: React.FC<SearchResultProps> = ({ results }) => {
   };
 
   return (
-    <section className="flex flex-col gap-8 pl-16 mt-6 ">
+    <section className="flex flex-col gap-1 px-2 mt-2">
     {results && (
         results.map((data) => (
-            <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md p-2 mx-3" onClick={() => handleOpenChat(data)}>
+            <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md p-2" onClick={() => handleOpenChat(data)}>
                 <div className="w-12 h-12 flex-shrink-0">
                     <img className="rounded-full w-full h-full object-cover" src={data.profilePic} alt="user avatar" />
                 </div>
-                <div className="ml-4 flex justify-between  w-full items-center ">
-                    <h2 className="text-xl font-bold">{data.username}</h2>
+                <div className="ml-3 flex justify-between min-w-0 flex-1 items-center">
+                    <h2 className="text-lg font-bold truncate">{data.username}</h2>
                 </div>
 
             </div>

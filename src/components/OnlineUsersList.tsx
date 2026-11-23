@@ -25,17 +25,17 @@ export const OnlineUsersList: React.FC<UsersListProps> = ({ users, setOpenGlobal
 
 
     return (
-        <section className="flex flex-col gap-8 pl-10 mt-4 ">
+        <section className="flex flex-col gap-1 px-2 mt-2">
             {users && (
                 users.map((data) => (
-                    <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md p-2 mx-3" onClick={() => handleOpenChat(data)}>
+                    <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md p-2" onClick={() => handleOpenChat(data)}>
                         <div className="w-12 h-12 flex-shrink-0 relative">
                             <img className="rounded-full w-full h-full object-cover  " src={data.profilePic} alt="user avatar" />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full"></div>
                         </div>
-                        <div className="ml-4 flex justify-between  w-full items-center ">
+                        <div className="ml-3 flex justify-between gap-2 min-w-0 flex-1 items-center">
                             <div className="flex justify-center flex-col  ">
-                            <h2 className="text-xl font-bold">{data.username}</h2>
+                            <h2 className="text-lg font-bold truncate">{data.username}</h2>
 
                             </div>
 

@@ -42,17 +42,17 @@ export const UsersList: React.FC<UsersListProps> = ({ users, setOpenGlobalChat }
     };
 
     return (
-        <section className="flex flex-col gap-8 pl-10 mt-4 ">
+        <section className="flex flex-col gap-1 px-2 mt-2">
             {users && (
                 users.map((data) => (
-                    <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md p-2 mx-3" onClick={() => handleOpenChat(data)}>
+                    <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md p-2" onClick={() => handleOpenChat(data)}>
                         <div className="w-12 h-12 flex-shrink-0">
                             <img className="rounded-full w-full h-full object-cover" src={data.profilePic} alt="user avatar" />
                         </div>
-                        <div className="ml-4 flex justify-between  w-full items-center ">
-                            <div className="flex justify-center flex-col  ">
-                            <h2 className="text-xl font-bold">{data.username}</h2>
-                            <p className="text-gray-500">{
+                        <div className="ml-3 flex justify-between gap-2 min-w-0 flex-1 items-center">
+                            <div className="flex justify-center flex-col min-w-0">
+                            <h2 className="text-lg font-bold truncate">{data.username}</h2>
+                            <p className="text-gray-500 text-sm truncate">{
                                 data.lastMessage.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
                                     'Image'
                                 ) : data.lastMessage.length > 30 ? (
@@ -60,8 +60,8 @@ export const UsersList: React.FC<UsersListProps> = ({ users, setOpenGlobalChat }
                                 ) : data.lastMessage
                                 }</p>
                             </div>
-                            <div className=''>
-                                <p className="text-sm text-gray-600">{formatLastMessage(data.lastMessageSendAt)}</p>
+                            <div className='shrink-0'>
+                                <p className="text-xs text-gray-600">{formatLastMessage(data.lastMessageSendAt)}</p>
                             </div>
                         </div>
 

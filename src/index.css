@@ -65,7 +65,9 @@ body {
   justify-content: center;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 

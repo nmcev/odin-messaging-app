@@ -1,7 +1,8 @@
-import React, { Suspense, lazy, memo, useContext, useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { Message } from '../types/Message';
+import { toExpiredPlaceholder } from '../utils/message';
 
 // Leaflet only loads when the first location message is rendered
 const LocationCard = lazy(() =>
@@ -10,7 +11,7 @@ const LocationCard = lazy(() =>
 
 const CLOUDINARY_PREFIX = 'https://res.cloudinary.com/dw';
 
-// helpers live outside the component so they are created once
+
 function displayTime(timestamp: string): string {
   const date = new Date(timestamp);
   const hours = date.getHours();
@@ -28,21 +29,15 @@ function displayDate(timestamp: string): string {
 }
 
 // old images in the database have no type, so keep the URL check as a fallback
-function getKind(msg: Message): 'location' | 'image' | 'text' {
+function getKind(msg: Message): 'expired' | 'location' | 'image' | 'text' {
+  if (msg.expired) return 'expired';
   if (msg.type === 'location' && msg.location) return 'location';
   if (msg.type === 'image' || msg.content.startsWith(CLOUDINARY_PREFIX)) return 'image';
   return 'text';
 }
 
-const chatContainerStyle: React.CSSProperties = {
-  height: 'calc(100vh - 6rem)',
-  overflowY: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-};
-
 const EmptyState = () => (
-  <div className="min-h-screen flex items-center justify-center">
+  <div className="flex-1 flex items-center justify-center p-4">
     <h1 className="text-2xl font-bold text-gray-500 dark:text-gray-400">
       Start a conversation
     </h1>
@@ -62,7 +57,7 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
 
   return (
     <div className={`flex gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} items-center mb-4`}>
-      <div className="w-10 h-10">
+      <div className="w-8 h-8 md:w-10 md:h-10 shrink-0 self-end">
         <img
           src={avatar}
           alt="profile"
@@ -73,7 +68,7 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
       </div>
 
       <div
-        className={`p-2 rounded-lg ${
+        className={`p-2 rounded-lg min-w-0 max-w-[80%] md:max-w-[70%] break-words ${
           isMine
             ? 'bg-[#ff9800] text-white ml-auto'
             : 'bg-gray-200 dark:bg-[#0e1621] text-gray-600 dark:text-gray-400 mr-auto'
@@ -88,7 +83,7 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
         )}
 
         {kind === 'image' && (
-          <div className="max-w-sm p-2 rounded-lg cursor-pointer">
+          <div className="max-w-full sm:max-w-sm py-1 rounded-lg cursor-pointer">
             <img
               src={msg.content}
               alt="preview"
@@ -101,11 +96,22 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
         )}
 
         {kind === 'text' && (
-          <p className="text-sm dark:text-white text-black">{msg.content}</p>
+          <p className="text-sm dark:text-white text-black whitespace-pre-wrap">{msg.content}</p>
         )}
 
+        {kind === 'expired' && (
+          <p className="text-sm italic opacity-70">🕐 This message disappeared</p>
+        )}
         <p className={`text-xs mt-1 ${kind === 'image' ? 'text-gray-500 dark:text-white' : ''}`}>
           {msg.sendAt && displayTime(msg.sendAt)}
+          {msg.expiresAt && (
+            <span
+              title={`Disappears ${new Date(msg.expiresAt).toLocaleString()}`}
+              className="ml-1"
+            >
+              🕐
+            </span>
+          )}
         </p>
       </div>
     </div>
@@ -124,6 +130,21 @@ export const MessagesDisplay = () => {
 
   const list = chattingWith ? messages[chattingWith._id] : undefined;
 
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+const display = useMemo(
+  () =>
+    list?.map((m) =>
+      !m.expired && m.expiresAt && new Date(m.expiresAt).getTime() <= now
+        ? toExpiredPlaceholder(m)
+        : m
+    ),
+  [list, now]
+  );
   // scroll to the bottom when the conversation or its messages change
   useEffect(() => {
     const el = chatContainerRef.current;
@@ -144,18 +165,17 @@ export const MessagesDisplay = () => {
 
   return (
     <div
-      className="p-4 mt-20 overscroll-y-auto md:p-20 pb-20"
-      style={chatContainerStyle}
+      className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col px-3 py-4 md:px-10 lg:px-20"
       ref={chatContainerRef}
     >
-      {list && list.length > 0 ? (
-        list.map((msg, index) => {
+      {display && display.length > 0 ? (
+        display.map((msg, index) => {
           const showDate =
-            index === 0 || displayDate(msg.sendAt) !== displayDate(list[index - 1].sendAt);
+            index === 0 || displayDate(msg.sendAt) !== displayDate(display[index - 1].sendAt);
           const isMine = msg.sender === currentUser?.user._id;
 
           return (
-            <React.Fragment key={msg._id ?? `${msg.sendAt}-${index}`}>
+            <React.Fragment key={msg._id ?? msg.clientId ?? `${msg.sendAt}-${index}`}>
               {showDate && (
                 <div className="w-full flex justify-center">
                   <div className="bg-gray-200 dark:bg-[#0a0f16] text-gray-600 dark:text-gray-400 p-1 rounded-lg">
@@ -178,13 +198,13 @@ export const MessagesDisplay = () => {
       )}
 
       {selectedImage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
           <div className="relative">
-            <div className="max-w-screen-sm p-4 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="max-w-screen-sm p-2 sm:p-4 bg-white dark:bg-gray-800 rounded-lg">
               <img
                 src={selectedImage}
                 alt="preview"
-                className="max-w-full max-h-full object-contain cursor-pointer"
+                className="max-w-full max-h-[80dvh] object-contain cursor-pointer"
                 onClick={() => setSelectedImage(null)}
               />
             </div>

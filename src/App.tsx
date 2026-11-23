@@ -7,7 +7,7 @@ const  App: React.FC = () => {
   return (
     <UserContextProvider>
     <AuthProvider>
-    <div className='flex flex-col min-h-screen'>
+    <div className='flex flex-col min-h-dvh w-full'>
         <Outlet />
     </div>
     </AuthProvider>

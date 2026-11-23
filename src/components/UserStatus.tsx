@@ -35,7 +35,7 @@ export const UserStatus: React.FC<UserStatusProps> = (
     {/* Display online users */}
     {onlineUsers.length > 0 && !results.length && (
         <>
-          <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+          <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Online Users</h2>
           </div>
           <OnlineUsersList users={onlineUsers} setOpenGlobalChat={setOpenGlobalChat} />
@@ -45,7 +45,7 @@ export const UserStatus: React.FC<UserStatusProps> = (
       {/* Display offline users */}
       {offlineUsers.length > 0 && !results.length && (
         <>
-          <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
+          <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Offline Users</h2>
           </div>
           <OfflineUsers users={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} />

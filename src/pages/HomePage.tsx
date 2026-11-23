@@ -16,6 +16,7 @@ import { UserStatus } from '../components/UserStatus';
 import usersIcon from '../assets/users.svg';
 import chatsIcon from '/chat.svg';
 import { Message } from '../types/Message';
+import { toExpiredPlaceholder } from '../utils/message';
 
 interface GlobalMessage {
   content: string;
@@ -82,7 +83,7 @@ export const HomePage: React.FC = () => {
               }
               return user;
             });
-    
+
             updatedUsers.sort((a, b) => {
               return new Date(b.lastMessageSendAt).getTime() - new Date(a.lastMessageSendAt).getTime();
             });
@@ -98,6 +99,23 @@ export const HomePage: React.FC = () => {
             ],
           }));
         });
+      
+      newSocket.on('messageExpired', (d: { messageId: string; between: string[] }) => {
+       const myId = authContext.currentUser.user._id.toString();
+        const otherId = d.between.find((id) => id !== myId);
+       if (!otherId) return;
+
+    setMessages((prevMessages: Record<string, Message[]>) =>
+       prevMessages[otherId]
+         ? {
+           ...prevMessages,
+            [otherId]: prevMessages[otherId].map((m) =>
+           m._id === d.messageId ? toExpiredPlaceholder(m) : m
+        ),
+          }
+         : prevMessages
+        );
+      });
     
         newSocket.on('receiveGlobalMessage', (receivedMessage: GlobalMessage) => {
           setGlobalMessages((prevMessages) => {
@@ -113,6 +131,7 @@ export const HomePage: React.FC = () => {
           newSocket.off('onlineUsers');
           newSocket.off('offlineUsers');
           newSocket.off('receiveMessage');
+          newSocket.off('messageExpired');   
           newSocket.off('receiveGlobalMessage');
           newSocket.off('disconnect');
           newSocket.disconnect();
@@ -207,117 +226,142 @@ export const HomePage: React.FC = () => {
     setChattingWith(null);
   }
 
-  const chatContainerStyle: React.CSSProperties = {
-    height: 'calc(100vh - 6rem)',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-  };
-  
-  return (
-    <div className=' flex w-screen max-md:flex-col'>
+  // on phones only one pane is visible: the list, or the open conversation
+  const isConversationOpen = Boolean(chattingWith) || openGlobalChat;
 
-<aside className='pt-8 bg-gray-300 dark:bg-[#181A1B] p-2 border-r-[1px] border-neutral-500 max-w-24 w-full max-md:max-w-screen-md'>
-        <div className='flex sm:flex-col-reverse items-center max-sm:justify-center gap-8'>
-          <img
-            src={usersIcon}
-            alt='users icon'
-            className={`w-8 h-8 cursor-pointer ${isUsersOpen ? 'p-[2px]' : ''}`}
-            onClick={() => {
-              setIsUsersOpen(true);
-              setIsChatsOpen(false);
-            }}
-          />
-          <img
-            src={chatsIcon}
-            alt='chats icon'
-            className={`w-8 h-8 cursor-pointer ${isChatsOpen ? 'p-[2px]' : ''}`}
+  const handleBack = () => {
+    setOpenGlobalChat(false);
+    setChattingWith(null);
+  };
+
+  const navButtonClass = (active: boolean) =>
+    `flex flex-col items-center gap-1 p-2 rounded-xl bg-transparent transition-colors ${
+      active ? 'bg-black/10 dark:bg-white/10' : 'opacity-60 hover:opacity-100'
+    }`;
+
+  return (
+    <div className='flex w-full h-dvh overflow-hidden max-md:flex-col'>
+
+      {/* Nav: left rail on desktop, bottom tab bar on phones */}
+      <aside
+        className={`bg-gray-300 dark:bg-[#181A1B] border-neutral-500 shrink-0
+          md:w-20 md:pt-8 md:border-r-[1px]
+          max-md:order-last max-md:border-t-[1px] max-md:pb-[env(safe-area-inset-bottom)]
+          ${isConversationOpen ? 'max-md:hidden' : ''}`}
+      >
+        <nav className='flex md:flex-col items-center justify-around md:justify-start md:gap-6 py-1 md:py-0'>
+          <button
+            type='button'
+            aria-label='Chats'
+            className={navButtonClass(isChatsOpen)}
             onClick={() => {
               setIsUsersOpen(false);
               setIsChatsOpen(true);
             }}
-          />
-        </div>
+          >
+            <img src={chatsIcon} alt='' className='w-7 h-7' />
+            <span className='text-[11px] md:hidden'>Chats</span>
+          </button>
+          <button
+            type='button'
+            aria-label='Users'
+            className={navButtonClass(isUsersOpen)}
+            onClick={() => {
+              setIsUsersOpen(true);
+              setIsChatsOpen(false);
+            }}
+          >
+            <img src={usersIcon} alt='' className='w-7 h-7' />
+            <span className='text-[11px] md:hidden'>Users</span>
+          </button>
+        </nav>
       </aside>
 
-      {/* Chats section */}
-      <section className='flex flex-col min-h-screen  bg-gray-200 dark:bg-[#181A1B] relative border-r-[1px] border-gray-500' style={chatContainerStyle}>
-  <SearchBar setResults={setResults} />
-  <SearchResult results={results} />
-
-  <div className='flex flex-col gap-4 '>
-  { isChatsOpen ? (
-    
-    <>
-
-    {results.length === 0 && (
-      <>
-        <div className='border-b-[1px] border-gray-300 w-96 ml-10'>
-          <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
+      {/* Chats list section */}
+      <section
+        className={`flex flex-col min-h-0 bg-gray-200 dark:bg-[#181A1B] border-gray-500
+          max-md:flex-1 md:w-80 lg:w-96 md:shrink-0 md:border-r-[1px]
+          ${isConversationOpen ? 'max-md:hidden' : ''}`}
+      >
+        <div className='shrink-0 pt-[env(safe-area-inset-top)]'>
+          <SearchBar setResults={setResults} />
         </div>
-        <section className="flex flex-col gap-8 pl-10 mt-4">
-          <div className='flex items-center cursor-pointer hover:bg-[#1919194b] rounded-md gap-4 p-2 mx-3' onClick={handleGlobalChat}>
-            <div className='w-12 h-12 flex-shrink-0'>
-              <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
-            </div>
-            <h2 className='text-xl font-bold'>TalkMate Chat</h2>
-          </div>
-        </section>
-      </>
-    )}
-    
 
+        <div className='flex-1 min-h-0 overflow-y-auto pb-4'>
+          <SearchResult results={results} />
 
-        {/* Display users */}
-        {users.length > 0 && !results.length ? (
-          <>
-            <div className='border-b-[1px] border-gray-300 w-96 ml-10 mt-5'>
-              <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
-            </div>
-            <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
-          </>
-        ) : (
-          <>
-            <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500 w-96 text-center">
-                Starts a conversation by searching for a user or clicking on the global chat.
-              </p>
-            </div>
-          </>
-        )}
-      </>
-    ) : (
-      <UserStatus onlineUsers={onlineUsers} offlineUsers={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} results={results} />
-    )}
+          {isChatsOpen ? (
+            <>
+              {results.length === 0 && (
+                <>
+                  <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-2'>
+                    <h2 className='text-lg font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Global Chat</h2>
+                  </div>
+                  <div className='flex flex-col px-2 mt-2'>
+                    <div
+                      className='flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md gap-3 p-2'
+                      onClick={handleGlobalChat}
+                    >
+                      <div className='w-12 h-12 flex-shrink-0'>
+                        <img className='rounded-full w-full h-full object-cover' src={globalIcon} alt='global chat icon' />
+                      </div>
+                      <h2 className='text-lg font-bold truncate'>TalkMate Chat</h2>
+                    </div>
+                  </div>
+                </>
+              )}
 
-  </div>
+              {/* Display users */}
+              {users.length > 0 && !results.length ? (
+                <>
+                  <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
+                    <h2 className='text-lg font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
+                  </div>
+                  <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
+                </>
+              ) : (
+                !results.length && (
+                  <p className='text-gray-500 text-center px-6 mt-10'>
+                    Start a conversation by searching for a user or clicking on the global chat.
+                  </p>
+                )
+              )}
+            </>
+          ) : (
+            <UserStatus onlineUsers={onlineUsers} offlineUsers={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} results={results} />
+          )}
+        </div>
 
+        <FooterProfile currentUser={currentUser} />
+      </section>
 
-  <FooterProfile currentUser={currentUser} />
-</section>
+      {/* Conversation section */}
+      <section
+        className={`flex-1 min-w-0 min-h-0 flex flex-col dark:bg-[#181A1B]
+          ${isConversationOpen ? '' : 'max-md:hidden'}`}
+      >
+        <ChatHeader isGlobal={openGlobalChat} onBack={handleBack} />
 
-
-      {/* chat section */}
-      <section className=' flex-1 dark:bg-[#181A1B] relative'>
-      <ChatHeader />
-
-        {/* display messages */}
-        {chattingWith && !openGlobalChat && <MessagesDisplay />}
-
-        {/* Message and image input */}
         {chattingWith && !openGlobalChat && (
-          <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket={socket} />
+          <>
+            <MessagesDisplay />
+            <SendMessageComponent message={message} setMessage={setMessage} setUsers={setUsers} socket={socket} />
+          </>
         )}
 
         {openGlobalChat && (
           <>
-            <SendMessageGlobal globalMessage={globalMessage} setGlobalMessage={setGlobalMessage} socket={socket} />
             <DisplayGlobalMessages />
+            <SendMessageGlobal globalMessage={globalMessage} setGlobalMessage={setGlobalMessage} socket={socket} />
           </>
         )}
-      </section>
 
-      
+        {!isConversationOpen && (
+          <div className='flex-1 flex items-center justify-center'>
+            <p className='text-xl font-bold text-gray-500 dark:text-gray-400'>Select a chat to start messaging</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 };

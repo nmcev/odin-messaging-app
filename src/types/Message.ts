@@ -6,4 +6,7 @@ export interface Message {
   receiver: string;
   sendAt: string;
   location?: { lat: number; lng: number };
+  expiresAt?: string;
+  clientId?: string;
+  expired?: boolean;
 }

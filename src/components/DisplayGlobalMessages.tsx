@@ -42,16 +42,9 @@ export const DisplayGlobalMessages = () => {
     };
   }, []);
 
-  const chatContainerStyle: React.CSSProperties = {
-    height: 'calc(100vh - 6rem)',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-  };
-
   if (!globalMessages || globalMessages.length === 0) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
+      <div className='flex-1 flex items-center justify-center p-4'>
         <h1 className='text-2xl font-bold text-gray-500 dark:text-gray-400'>
           Start a conversation
         </h1>
@@ -78,7 +71,7 @@ export const DisplayGlobalMessages = () => {
   let lastDisplayDate: string | null = null;
 
   return (
-    <div className='p-4 mt-20 overscroll-y-auto md:p-20 pb-20' style={chatContainerStyle} ref={chatContainerRef}>
+    <div className='flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col px-3 py-4 md:px-10 lg:px-20' ref={chatContainerRef}>
       {globalMessages.map((msg: GlobalMessage, index: number) => {
         const messageDate = displayDate(msg.sendAt);
         const showDate = messageDate !== lastDisplayDate;
@@ -103,7 +96,7 @@ export const DisplayGlobalMessages = () => {
                 msg.sender._id === currentUser?.user._id ? 'flex-row-reverse' : 'flex-row'
               } items-center mb-4`}
             >
-              <div className='w-10 h-10'>
+              <div className='w-8 h-8 md:w-10 md:h-10 shrink-0 self-end'>
                 <img
                   src={msg.sender._id === currentUser.user._id ? currentUser?.user.profilePic : msg.sender.profilePic}
                   alt='profile'
@@ -112,7 +105,7 @@ export const DisplayGlobalMessages = () => {
                 />
               </div>
               <div
-                className={`p-2 rounded-lg ${
+                className={`p-2 rounded-lg min-w-0 max-w-[80%] md:max-w-[70%] break-words ${
                   msg.sender._id === currentUser?.user._id
                     ? 'bg-[#ff9800] text-white ml-auto'
                     : 'bg-gray-200 dark:bg-[#0e1621] text-gray-600 dark:text-gray-400 mr-auto'
@@ -123,7 +116,7 @@ export const DisplayGlobalMessages = () => {
                 </p>
                 {msg.content.startsWith('https://res.cloudinary.com/dw') ? (
                   <>
-                 <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg  cursor-pointer'>
+                 <div className='max-w-full sm:max-w-sm py-1 rounded-lg cursor-pointer'>
                    <img src={msg.content} alt='preview'
                     className='max-w-full max-h-full object-contain cursor-pointer' 
                     onClick={() => setSelectedImage(msg.content)}
@@ -135,7 +128,7 @@ export const DisplayGlobalMessages = () => {
                   </>
                 ) : (
                   <>
-                    <p className='text-sm dark:text-white text-black'>{msg.content}</p>
+                    <p className='text-sm dark:text-white text-black whitespace-pre-wrap'>{msg.content}</p>
                     <p className='text-xs mt-1'>{msg.sendAt && displayTime(msg.sendAt)}</p>
                   </>
                 )}
@@ -145,11 +138,11 @@ export const DisplayGlobalMessages = () => {
         );
       })}
       {selectedImage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
           <div className="relative">
-          <div className=' max-w-sm max-h-screen-lg p-2 rounded-lg bg-white dark:bg-gray-800  cursor-pointer'>
+          <div className='max-w-screen-sm p-2 sm:p-4 rounded-lg bg-white dark:bg-gray-800 cursor-pointer'>
                    <img src={selectedImage} alt='preview'
-                    className='max-w-full max-h-full object-contain cursor-pointer' 
+                    className='max-w-full max-h-[80dvh] object-contain cursor-pointer' 
                     onClick={() => setSelectedImage(null)}
                     />
             </div>            

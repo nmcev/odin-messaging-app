@@ -33,19 +33,18 @@ export const FooterProfile: React.FC<FooterProfileProps> = ({currentUser}) => {
     const  { logout } = authContext
   return (
 
-    <footer className=" sticky bottom-0 right-0 left-0 bg-gray-200   dark:bg-[#181A1B] text-white py-2 px-4 flex items-center justify-between gap-5">
-
-          <div className="flex items-center cursor-pointer " onClick={() => navigate(`/user/${currentUser.user.username}`)}>
-              <div className="w-12 h-12">
+<footer className="mt-auto shrink-0 bg-gray-200 dark:bg-[#181A1B] text-white py-2 px-4 flex items-center justify-between gap-5 border-t-[1px] border-gray-300 dark:border-gray-700 md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-center cursor-pointer min-w-0" onClick={() => navigate(`/user/${currentUser.user.username}`)}>
+              <div className="w-10 h-10 md:w-12 md:h-12 shrink-0">
                   <img className="rounded-full w-full h-full object-cover" src={currentUser.user.profilePic} alt="user avatar" />
               </div>
 
-              <div className="ml-4">
-                <h2 className="text-xl font-bold text-[#181a1b] dark:text-slate-50">{currentUser.user.username}</h2>
+              <div className="ml-3 min-w-0">
+                <h2 className="text-lg md:text-xl truncate font-bold text-[#181a1b] dark:text-slate-50">{currentUser.user.username}</h2>
               </div>
           </div>
             
-            <button className=" cursor-pointer w-8 h-8 bg-transparent" onClick={logout}>
+            <button className="shrink-0 cursor-pointer w-8 h-8 p-0 bg-transparent" aria-label="Log out" onClick={logout}>
               <img  src={logoutIcon} alt="logout icon" />
             </button>
     </footer>
