@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent } from "react";
+import React, { useState, useCallback, useMemo, ChangeEvent } from "react";
 
 const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>;
@@ -10,8 +10,16 @@ const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number)
   };
 };
 
+interface User {
+  _id: string;
+  username: string;
+  profilePic: string;
+  lastMessage: string;
+  lastMessageSendAt: string;
+}
+
 interface SearchBarProps {
-  setResults: (results: any[]) => void;
+  setResults: (results: User[]) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ setResults }) => {
@@ -23,7 +31,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ setResults }) => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      const data = await response.json();
+      const data: User[] = await response.json();
       setResults(data);
     } catch (error) {
       console.error('Error fetching search results:', error);
@@ -31,8 +39,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ setResults }) => {
     }
   }, [setResults]);
 
-  const debouncedSearch = useCallback(
-    debounce((searchQuery: string) => handleSearch(searchQuery), 500),
+  // useMemo keeps one debounced function per handleSearch, so the timer survives re-renders
+  const debouncedSearch = useMemo(
+    () => debounce((searchQuery: string) => handleSearch(searchQuery), 500),
     [handleSearch]
   );
 
