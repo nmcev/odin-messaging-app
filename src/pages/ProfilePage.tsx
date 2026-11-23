@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import editIcon from '../assets/edit.svg';
 import { UserPage } from './UserPage';
 import { useParams } from 'react-router-dom';
+import { BackButton } from '../components/BackButton';
 
 export const ProfilePage: React.FC = () => {
   const { username } = useParams();
@@ -81,7 +82,8 @@ const handleImageChange = async (
   }
 };
   return (
-    <section className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-100 dark:bg-[#2b2b2b] p-5">
+    <section className="flex flex-col items-center justify-center min-h-dvh w-full bg-gray-100 dark:bg-[#2b2b2b] px-5 pt-20 pb-5">
+      <BackButton />
       <div className="bg-white shadow-lg rounded-lg p-6 max-w-sm w-full">
         <div className="flex flex-col items-center ">
           <div className="w-32 h-32 rounded-full relative border-4 border-indigo-500 shadow-lg ">

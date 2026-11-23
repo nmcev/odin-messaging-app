@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../components/BackButton';
 
 interface UserPageProps {
     username: string | undefined
@@ -57,7 +58,8 @@ export const UserPage: React.FC<UserPageProps>= ({ username }) => {
     }
 
   return (
-    <section className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-100  dark:bg-[#2b2b2b] p-5">
+    <section className="flex flex-col items-center justify-center min-h-dvh w-full bg-gray-100 dark:bg-[#2b2b2b] px-5 pt-20 pb-5">
+    <BackButton />
     <div className="bg-white shadow-lg rounded-lg p-6 max-w-sm w-full">
       <div className="flex flex-col items-center ">
         <div className="w-32 h-32 rounded-full relative border-4 border-orange-500 shadow-lg ">
