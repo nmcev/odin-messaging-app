@@ -229,9 +229,34 @@ export const HomePage: React.FC = () => {
   // on phones only one pane is visible: the list, or the open conversation
   const isConversationOpen = Boolean(chattingWith) || openGlobalChat;
 
+  // Opening a conversation adds one history entry, so the phone's back
+  // button/gesture closes the chat instead of leaving the app.
+  useEffect(() => {
+    if (isConversationOpen && !window.history.state?.chatOpen) {
+      // keep React Router's own state fields so its history index stays valid
+      window.history.pushState({ ...window.history.state, chatOpen: true }, '');
+    }
+  }, [isConversationOpen]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (!window.history.state?.chatOpen) {
+        setOpenGlobalChat(false);
+        setChattingWith(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [setChattingWith]);
+
   const handleBack = () => {
-    setOpenGlobalChat(false);
-    setChattingWith(null);
+    if (window.history.state?.chatOpen) {
+      // pop our entry; the popstate listener closes the chat
+      window.history.back();
+    } else {
+      setOpenGlobalChat(false);
+      setChattingWith(null);
+    }
   };
 
   const navButtonClass = (active: boolean) =>
