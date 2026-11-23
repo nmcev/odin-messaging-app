@@ -113,6 +113,11 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
             </span>
           )}
         </p>
+        {msg.failed && (
+          <p className="text-xs mt-1 font-semibold text-red-700 dark:text-red-300" role="alert">
+            ⚠ Not sent
+          </p>
+        )}
       </div>
     </div>
   );
@@ -175,7 +180,7 @@ const display = useMemo(
           const isMine = msg.sender === currentUser?.user._id;
 
           return (
-            <React.Fragment key={msg._id ?? msg.clientId ?? `${msg.sendAt}-${index}`}>
+            <React.Fragment key={msg.clientId ?? msg._id ?? `${msg.sendAt}-${index}`}>
               {showDate && (
                 <div className="w-full flex justify-center">
                   <div className="bg-gray-200 dark:bg-[#0a0f16] text-gray-600 dark:text-gray-400 p-1 rounded-lg">

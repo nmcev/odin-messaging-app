@@ -1,10 +1,12 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { Socket } from 'socket.io-client';
 import attachIcon from '../assets/attach.svg';
 import { Message } from '../types/Message';
 import { useDisappearing } from '../hooks/useDisappearing';
+import { MAX_MESSAGE_LENGTH, createClientId } from '../utils/message';
+
 interface SendMessageComponentProps {
   message: string;
   setMessage: (message: string) => void;
@@ -20,9 +22,13 @@ interface User {
   lastMessageSendAt: string;
 }
 
+interface SendAck {
+  ok: boolean;
+  message?: Message;
+}
+
 const API_URL: string = import.meta.env.VITE_API_URL;
-
-
+const ACK_TIMEOUT_MS = 10000;
 
 export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   message,
@@ -31,213 +37,187 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   socket,
 }) => {
   const authContext = useContext(AuthContext)!;
-  const { chattingWith, messages, setMessages } = useContext(UserContext)!;
+  const { chattingWith, setMessages } = useContext(UserContext)!;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-const [locating, setLocating] = useState(false);
-const [locationError, setLocationError] = useState<string | null>(null);
-const { seconds, setTimer } = useDisappearing(socket, chattingWith?._id);
-  
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const { seconds, setTimer } = useDisappearing(socket, chattingWith?._id);
+
+  // one object URL per picked file, released when it changes or the dialog closes
+  const previewUrl = useMemo(
+    () => (selectedImage ? URL.createObjectURL(selectedImage) : null),
+    [selectedImage]
+  );
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  // Shared by text, image and location: show the message right away, move the chat to the
+  // top of the list (adding it if this is a new conversation), then swap in the server's saved
+  // copy, which carries the _id and expiresAt that disappearing messages need.
+  const sendDirectMessage = (
+    draft: Omit<Message, 'sender' | 'receiver' | 'sendAt' | 'clientId'>,
+    preview: string
+  ) => {
+    if (!chattingWith) return;
+    const partner = chattingWith;
+    const sendAt = new Date().toISOString();
+    const clientId = createClientId();
+    const optimistic: Message = {
+      ...draft,
+      clientId,
+      sender: authContext.currentUser!.user._id,
+      receiver: partner._id,
+      sendAt,
+    };
+
+    setMessages((prev) => ({
+      ...prev,
+      [partner._id]: [...(prev[partner._id] ?? []), optimistic],
+    }));
+
+    setUsers?.((prevUsers) => {
+      const existing = prevUsers.find((u) => u._id === partner._id);
+      const updated: User = {
+        ...(existing ?? partner),
+        lastMessage: preview,
+        lastMessageSendAt: sendAt,
+      };
+      return [updated, ...prevUsers.filter((u) => u._id !== partner._id)];
+    });
+
+    const replace = (patch: (m: Message) => Message) =>
+      setMessages((prev) => {
+        const list = prev[partner._id];
+        if (!list) return prev;
+        return {
+          ...prev,
+          [partner._id]: list.map((m) => (m.clientId === clientId ? patch(m) : m)),
+        };
+      });
+
+    if (!socket) {
+      replace((m) => ({ ...m, failed: true }));
+      return;
+    }
+
+    // timeout() makes the callback fire with an error if the server never answers
+    socket
+      .timeout(ACK_TIMEOUT_MS)
+      .emit('sendMessage', optimistic, (err: Error | null, res?: SendAck) => {
+        if (err || !res?.ok || !res.message) {
+          replace((m) => ({ ...m, failed: true }));
+          return;
+        }
+        const saved = res.message;
+        // keep clientId so the React key (and any rendered map) stays the same
+        replace((m) => ({ ...m, ...saved, clientId: m.clientId, failed: false }));
+      });
+  };
 
   // handle sending message
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && chattingWith && messages[chattingWith._id]) {
-      const newMessage: Message = {
-        type: 'text',
-        content: message,
-        sender: authContext.currentUser!.user._id,
-        receiver: chattingWith._id,
-        sendAt: new Date().toISOString(),
-      };
-
-      // send message to the server
-      socket?.emit('sendMessage', newMessage);
-
-      setUsers?.((prevUsers) => {
-        const updatedUsers = prevUsers.map((user) => {
-          if (user._id === chattingWith._id) {
-            return {
-              ...user,
-              lastMessage: message,
-              lastMessageSendAt: new Date().toISOString(),
-            };
-          }
-          return user;
-        });
-
-        const chattingUser = updatedUsers.find((user) => user._id === chattingWith._id);
-        if (chattingUser) {
-          const otherUsers = updatedUsers.filter((user) => user._id !== chattingWith._id);
-          return [chattingUser, ...otherUsers];
-        }
-
-        return updatedUsers;
-      });
-
-      setMessages((prevMessages) => ({
-        ...prevMessages,
-        [chattingWith._id]: [...prevMessages[chattingWith._id], newMessage],
-      }));
-
-      setMessage('');
-    }
+    const text = message.trim();
+    if (!text || !chattingWith) return;
+    sendDirectMessage({ type: 'text', content: text }, text);
+    setMessage('');
   };
 
   // handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // reset so picking the same file again (after Cancel) still fires onChange
+    e.target.value = '';
     if (file) {
+      setUploadError(null);
       setSelectedImage(file);
     }
   };
 
   // handle sending image
-const handleSendImage = async () => {
-  if (!selectedImage || !chattingWith) return;
+  const handleSendImage = async () => {
+    if (!selectedImage || !chattingWith || uploading) return;
 
-  try {
-    const formData = new FormData();
-    formData.append('file', selectedImage);
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedImage);
 
-    const token = authContext.token;
+      const response = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `${authContext.token}`,
+        },
+        body: formData,
+      });
 
-    const response = await fetch(`${API_URL}/api/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `${token}`,
-      },
-      body: formData,
-    });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Upload failed: ${error}`);
+      }
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Upload failed: ${error}`);
+      const { url } = await response.json();
+      sendDirectMessage({ type: 'image', content: url }, 'Image');
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Image upload error:', error);
+      setUploadError('Upload failed. Try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSendLocation = () => {
+    if (!chattingWith || locating) return;
+
+    if (!navigator.geolocation) {
+      setLocationError('Location is not supported by your browser.');
+      return;
     }
 
-    const { url } = await response.json();
+    setLocating(true);
+    setLocationError(null);
 
-    const newMessage: Message = {
-      type: 'image',
-      content: url,
-      sender: authContext.currentUser!.user._id,
-      receiver: chattingWith._id,
-      sendAt: new Date().toISOString(),
-    };
-
-    socket?.emit('sendMessage', newMessage);
-
-    setUsers?.((prevUsers) => {
-      const updatedUsers = prevUsers.map((user) => {
-        if (user._id === chattingWith._id) {
-          return {
-            ...user,
-            lastMessage: 'Image',
-            lastMessageSendAt: new Date().toISOString(),
-          };
-        }
-
-        return user;
-      });
-
-      const chattingUser = updatedUsers.find(
-        (user) => user._id === chattingWith._id
-      );
-
-      if (chattingUser) {
-        const otherUsers = updatedUsers.filter(
-          (user) => user._id !== chattingWith._id
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        sendDirectMessage(
+          {
+            type: 'location',
+            content: 'Location', // the server sets this too
+            location: { lat: latitude, lng: longitude },
+          },
+          'Location'
         );
-
-        return [chattingUser, ...otherUsers];
-      }
-
-      return updatedUsers;
-    });
-
-    setMessages((prevMessages) => ({
-      ...prevMessages,
-      [chattingWith._id]: [
-        ...prevMessages[chattingWith._id],
-        newMessage,
-      ],
-    }));
-
-    setSelectedImage(null);
-       } catch (error) {
-          console.error('Image upload error:', error);
-     }
-    };
-
-
- const handleSendLocation = () => {
-  if (!chattingWith || locating) return;
-
-  if (!navigator.geolocation) {
-    setLocationError('Location is not supported by your browser.');
-    return;
-  }
-
-  setLocating(true);
-  setLocationError(null);
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      const now = new Date().toISOString();
-
-      const newMessage: Message = {
-        type: 'location',
-        content: 'Location', // the server sets this too
-        sender: authContext.currentUser!.user._id,
-        receiver: chattingWith._id,
-        sendAt: now,
-        location: { lat: latitude, lng: longitude },
-      };
-
-      socket?.emit('sendMessage', newMessage);
-
-      setUsers?.((prevUsers) => {
-        const updatedUsers = prevUsers.map((user) =>
-          user._id === chattingWith._id
-            ? { ...user, lastMessage: 'Location', lastMessageSendAt: now }
-            : user
-        );
-        const chattingUser = updatedUsers.find((u) => u._id === chattingWith._id);
-        if (chattingUser) {
-          const others = updatedUsers.filter((u) => u._id !== chattingWith._id);
-          return [chattingUser, ...others];
+        setLocating(false);
+      },
+      (error) => {
+        setLocating(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError('Location permission was denied. Allow it in your browser settings.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError('Your location could not be determined.');
+            break;
+          case error.TIMEOUT:
+            setLocationError('Getting your location timed out. Try again.');
+            break;
+          default:
+            setLocationError('Could not get your location.');
         }
-        return updatedUsers;
-      });
-
-      setMessages((prevMessages) => ({
-        ...prevMessages,
-        [chattingWith._id]: [...(prevMessages[chattingWith._id] ?? []), newMessage],
-      }));
-
-      setLocating(false);
-    },
-    (error) => {
-      setLocating(false);
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          setLocationError('Location permission was denied. Allow it in your browser settings.');
-          break;
-        case error.POSITION_UNAVAILABLE:
-          setLocationError('Your location could not be determined.');
-          break;
-        case error.TIMEOUT:
-          setLocationError('Getting your location timed out. Try again.');
-          break;
-        default:
-          setLocationError('Could not get your location.');
-      }
-      setTimeout(() => setLocationError(null), 4000);
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
-};
+        setTimeout(() => setLocationError(null), 4000);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   return (
     <footer className="relative shrink-0 bg-gray-200 dark:bg-[#181A1B] text-[#191919] pt-2 px-2 md:px-4 md:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-3 flex items-center gap-1.5 sm:gap-2 md:gap-4">
@@ -246,6 +226,7 @@ const handleSendImage = async () => {
         onChange={(e) => setMessage(e.target.value)}
         type="text"
         placeholder="Type a message"
+        maxLength={MAX_MESSAGE_LENGTH}
         className="py-2 px-4 rounded-full flex-1 min-w-0 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#121212] dark:text-white"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -272,19 +253,22 @@ const handleSendImage = async () => {
         <dialog className="fixed inset-0 flex items-center justify-center backdrop-blur-sm backdrop-brightness-75 backdrop-opacity-75 backdrop-saturate-150" >
         <div className="bg-[#2b2b2b] rounded-2xl p-4 sm:p-8 mx-4 max-w-[calc(100vw-2rem)]">
             <img
-              src={URL.createObjectURL(selectedImage)}
+              src={previewUrl ?? undefined}
               alt="preview"
               className="w-full max-w-64 sm:w-64 aspect-square object-cover rounded-lg mb-4 border-white  border-2"
             />
+            {uploadError && <p className="text-red-400 text-sm mb-3">{uploadError}</p>}
             <button
               onClick={handleSendImage}
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+              disabled={uploading}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Send Image
+              {uploading ? 'Sending…' : 'Send Image'}
             </button>
             <button
               onClick={() => setSelectedImage(null)}
-              className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg ml-4 hover:bg-gray-400"
+              disabled={uploading}
+              className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg ml-4 hover:bg-gray-400 disabled:opacity-60"
             >
               Cancel
             </button>

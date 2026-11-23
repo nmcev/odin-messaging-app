@@ -9,4 +9,5 @@ export interface Message {
   expiresAt?: string;
   clientId?: string;
   expired?: boolean;
+  failed?: boolean; // client-only: the server rejected it or never answered
 }

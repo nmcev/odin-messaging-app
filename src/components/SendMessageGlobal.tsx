@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Socket } from 'socket.io-client';
 import attachIcon from '../assets/attach.svg';
 import { UserContext } from '../context/UserContext';
+import { MAX_MESSAGE_LENGTH } from '../utils/message';
 
 interface SendMessageComponentProps {
     globalMessage: string;
@@ -35,6 +36,19 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
 
   const authContext = useContext(AuthContext)!;
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // one object URL per picked file, released when it changes or the dialog closes
+  const previewUrl = useMemo(
+    () => (selectedImage ? URL.createObjectURL(selectedImage) : null),
+    [selectedImage]
+  );
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
   const {  setGlobalMessages } = useContext(UserContext)
  
 
@@ -43,9 +57,10 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
   // handle sending message
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (globalMessage.trim()) {
+    const text = globalMessage.trim();
+    if (text) {
       const newMessage: GlobalMessage = {
-        content: globalMessage,
+        content: text,
         sender: authContext.currentUser!.user,
         sendAt: new Date().toISOString(),
       };
@@ -68,15 +83,20 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
   // handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // reset so picking the same file again (after Cancel) still fires onChange
+    e.target.value = '';
     if (file) {
+      setUploadError(null);
       setSelectedImage(file);
     }
   };
 
   // handle sending image
  const handleSendImage = async () => {
-  if (!selectedImage) return;
+  if (!selectedImage || uploading) return;
 
+  setUploading(true);
+  setUploadError(null);
   try {
     const formData = new FormData();
     formData.append('file', selectedImage);
@@ -114,6 +134,9 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
     setSelectedImage(null);
   } catch (error) {
     console.error('Image upload error:', error);
+    setUploadError('Upload failed. Try again.');
+  } finally {
+    setUploading(false);
   }
 };
   return (
@@ -123,6 +146,7 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
         onChange={(e) => setGlobalMessage(e.target.value)}
         type="text"
         placeholder="Type a message"
+        maxLength={MAX_MESSAGE_LENGTH}
         className="py-2 px-4 rounded-full flex-1 min-w-0 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#121212] dark:text-white"
         onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -149,19 +173,22 @@ export const SendMessageGlobal: React.FC<SendMessageComponentProps> = ({
         <dialog className="fixed inset-0 flex items-center justify-center backdrop-blur-sm backdrop-brightness-75 backdrop-opacity-75 backdrop-saturate-150" >
         <div className="bg-[#2b2b2b] rounded-2xl p-4 sm:p-8 mx-4 max-w-[calc(100vw-2rem)]">
             <img
-              src={URL.createObjectURL(selectedImage)}
+              src={previewUrl ?? undefined}
               alt="preview"
               className="w-full max-w-64 sm:w-64 aspect-square object-cover rounded-lg mb-4 border-white  border-2"
             />
+            {uploadError && <p className="text-red-400 text-sm mb-3">{uploadError}</p>}
             <button
               onClick={handleSendImage}
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+              disabled={uploading}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Send Image
+              {uploading ? 'Sending…' : 'Send Image'}
             </button>
             <button
               onClick={() => setSelectedImage(null)}
-              className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg ml-4 hover:bg-gray-400"
+              disabled={uploading}
+              className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg ml-4 hover:bg-gray-400 disabled:opacity-60"
             >
               Cancel
             </button>

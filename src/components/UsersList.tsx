@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { UserContext } from '../context/UserContext';
+import { lastMessagePreview } from '../utils/message';
 
 interface User {
     username: string;
@@ -52,13 +53,7 @@ export const UsersList: React.FC<UsersListProps> = ({ users, setOpenGlobalChat }
                         <div className="ml-3 flex justify-between gap-2 min-w-0 flex-1 items-center">
                             <div className="flex justify-center flex-col min-w-0">
                             <h2 className="text-lg font-bold truncate">{data.username}</h2>
-                            <p className="text-gray-500 text-sm truncate">{
-                                data.lastMessage.startsWith('https://odin-blog-bucket.s3.eu-north-1') ? (
-                                    'Image'
-                                ) : data.lastMessage.length > 30 ? (
-                                    `${data.lastMessage.substring(0, 30)}...`
-                                ) : data.lastMessage
-                                }</p>
+                            <p className="text-gray-500 text-sm truncate">{lastMessagePreview(data.lastMessage)}</p>
                             </div>
                             <div className='shrink-0'>
                                 <p className="text-xs text-gray-600">{formatLastMessage(data.lastMessageSendAt)}</p>

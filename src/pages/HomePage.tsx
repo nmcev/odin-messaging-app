@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import { SearchResult } from '../components/SearchResult';
 import { AuthContext } from '../context/AuthContext';
@@ -56,6 +56,40 @@ export const HomePage: React.FC = () => {
   const [ offlineUsers, setOfflineUsers] = useState<User[]>([]);
   const [ isUsersOpen,  setIsUsersOpen] = useState<boolean>(false);
   const [isChatsOpen, setIsChatsOpen] = useState<boolean>(true);
+  // bumping this remounts the search bar, which clears the box and cancels any pending search
+  const [searchKey, setSearchKey] = useState(0);
+
+  const myId = currentUser?.user._id;
+  const authToken = authContext.token;
+
+  // fetch the chat list (people this user has talked to, newest first)
+  const fetchUsers = useCallback(async () => {
+    if (!myId) return;
+    try {
+      const response = await fetch(`${API_URL}/api/chats/${myId}`, {
+        headers: {
+          Authorization: `${authToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [myId, authToken]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // the socket handlers are created once, so they read the latest list/fetcher through refs
+  const usersRef = useRef<User[]>(users);
+  usersRef.current = users;
+  const fetchUsersRef = useRef(fetchUsers);
+  fetchUsersRef.current = fetchUsers;
 
     // socket connection
     useEffect(() => {
@@ -72,6 +106,11 @@ export const HomePage: React.FC = () => {
         });
     
         newSocket.on('receiveMessage', (receivedMessage: Message) => {
+          // first message from someone new: we don't have their profile yet, so reload the list
+          if (!usersRef.current.some((user) => user._id === receivedMessage.sender)) {
+            fetchUsersRef.current();
+          }
+
           setUsers((prevUsers) => {
             const updatedUsers = prevUsers.map((user) => {
               if (user._id === receivedMessage.sender) {
@@ -104,6 +143,9 @@ export const HomePage: React.FC = () => {
        const myId = authContext.currentUser.user._id.toString();
         const otherId = d.between.find((id) => id !== myId);
        if (!otherId) return;
+
+       // the server deleted it, so reload the list to drop it from the "last message" preview
+       fetchUsersRef.current();
 
     setMessages((prevMessages: Record<string, Message[]>) =>
        prevMessages[otherId]
@@ -192,39 +234,20 @@ export const HomePage: React.FC = () => {
   }, [authContext.token, setGlobalMessages]);
 
 
-  const token = localStorage.getItem('token');
-// fetch users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/chats/${currentUser?.user._id}`
-          ,{
-            headers: {
-              Authorization: `${token}`,
-            }
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    if (currentUser) {
-      fetchUsers();
-    }
-  }, [currentUser, results, token]);
-
-
 
   const handleGlobalChat = () => {
     setOpenGlobalChat(true);
     setChattingWith(null);
   }
+
+  // opening someone from search must also leave the global chat,
+  // otherwise their name shows in the header while you type into the public room
+  const handleSelectSearchResult = (user: User) => {
+    setOpenGlobalChat(false);
+    setChattingWith(user);
+    setResults([]);
+    setSearchKey((k) => k + 1);
+  };
 
   // on phones only one pane is visible: the list, or the open conversation
   const isConversationOpen = Boolean(chattingWith) || openGlobalChat;
@@ -309,11 +332,11 @@ export const HomePage: React.FC = () => {
           ${isConversationOpen ? 'max-md:hidden' : ''}`}
       >
         <div className='shrink-0 pt-[env(safe-area-inset-top)]'>
-          <SearchBar setResults={setResults} />
+          <SearchBar key={searchKey} setResults={setResults} />
         </div>
 
         <div className='flex-1 min-h-0 overflow-y-auto pb-4'>
-          <SearchResult results={results} />
+          <SearchResult results={results} onSelect={handleSelectSearchResult} />
 
           {isChatsOpen ? (
             <>

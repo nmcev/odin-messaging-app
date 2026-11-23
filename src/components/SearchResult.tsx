@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,26 +12,24 @@ interface User {
 
 interface SearchResultProps {
   results: User[];
+  onSelect: (user: User) => void;
 }
 
-export const SearchResult: React.FC<SearchResultProps> = ({ results }) => {
-  const userContext = useContext(UserContext);
+export const SearchResult: React.FC<SearchResultProps> = ({ results, onSelect }) => {
   const authContext = useContext(AuthContext);
 
   const navigate = useNavigate();
 
-  if (!userContext || !authContext) {
+  if (!authContext) {
     return null;
   }
-
-  const { setChattingWith } = userContext;
 
   const handleOpenChat = (user: User) => {
 
     if (authContext.currentUser?.user?._id === user._id) {
       return navigate(`/user/${user.username}`);
     }
-    setChattingWith(user);
+    onSelect(user);
   };
 
   return (

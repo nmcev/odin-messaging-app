@@ -1,4 +1,5 @@
-import React, { createContext, useEffect, useState, useCallback  } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback  } from 'react';
+import { UserContext } from './UserContext';
 import { useNavigate } from 'react-router-dom';
 
 const API_URL: string = import.meta.env.VITE_API_URL;
@@ -50,6 +51,17 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
     const [currentUser, setCurrentUser] = useState<Data>(initialUser);
     const navigate = useNavigate();
     const [isValid, setIsValid] = useState<boolean | undefined>(undefined);
+    const { setChattingWith, setMessages, setGlobalMessages, setUsers } = useContext(UserContext);
+
+    // drop everything cached for the previous account, so the next person
+    // to log in on this device doesn't land in (or briefly see) someone else's chats
+    const clearSessionData = () => {
+      setChattingWith(null);
+      setMessages({});
+      setGlobalMessages([]);
+      setUsers([]);
+      setCurrentUser(initialUser);
+    };
 
 
 
@@ -216,6 +228,7 @@ const validateToken = useCallback(async () => {
         const data = await response.json();
   
   
+      clearSessionData();
       localStorage.setItem('token', data.token );
       setToken(data.token)
       navigate('/homepage')
@@ -236,6 +249,7 @@ const validateToken = useCallback(async () => {
         localStorage.removeItem('token');
         setToken(null);
         setIsValid(false);
+        clearSessionData();
         navigate('/login');
       }
     };
