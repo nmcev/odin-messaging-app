@@ -53,35 +53,46 @@ const AuthProvider: React.FC<AuthProviderProps>  = ({children}) => {
 
 
 
-    const validateToken = useCallback(async () => {
+const validateToken = useCallback(async () => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000); // never wait forever
 
-      try {
-        const response = await fetch(`${API_URL}/api/profile`, {
-          method: 'GET',
-          headers: {
-            
-            'Content-Type': 'application/json',
-            'Authorization': `${token}`,
-        },
-        credentials: 'include',
-        })
+  try {
+    const response = await fetch(`${API_URL}/api/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`,
+      },
+      credentials: 'include',
+      signal: controller.signal,
+    });
 
-        if (response.ok) {
-          const data = await response.json();
-          setCurrentUser(data);
-          setIsValid(true)
-          return !!data.user
-        } else {
-          console.error('Error: response not ok');
-          return false;
-        }
-
-      } catch(error) {
-            console.error('Error validating token:', error);
-            return false
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.user) {
+        setCurrentUser(data);
+        setIsValid(true);
+        return true;
       }
+      setIsValid(false);
+      return false;
+    }
 
-    }, [token])
+    if (response.status === 401 || response.status === 403 || response.status === 404) {
+      localStorage.removeItem('token');
+      setToken(null);
+    }
+    setIsValid(false);
+    return false;
+  } catch (error) {
+    console.error('Error validating token:', error);
+    setIsValid(false);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}, [token]);
 
     useEffect(() => {
     
