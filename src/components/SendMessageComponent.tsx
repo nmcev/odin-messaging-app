@@ -240,7 +240,7 @@ const handleSendImage = async () => {
 };
 
   return (
-    <footer className="relative shrink-0 bg-gray-200 dark:bg-[#181A1B] text-[#191919] pt-2 px-2 md:px-4 md:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-3 flex items-center gap-2 md:gap-4">
+    <footer className="relative shrink-0 bg-gray-200 dark:bg-[#181A1B] text-[#191919] pt-2 px-2 md:px-4 md:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-3 flex items-center gap-1.5 sm:gap-2 md:gap-4">
       <input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
@@ -321,8 +321,12 @@ const handleSendImage = async () => {
   {locating ? '⏳' : '📍'}
 </button>
       {!selectedImage && (
-        <button onClick={handleSubmit} className="shrink-0 bg-orange-500 text-white py-2 px-4 rounded-full">
-          Send
+        <button onClick={handleSubmit} aria-label="Send" className="shrink-0 bg-orange-500 text-white p-2 sm:py-2 sm:px-4 rounded-full">
+          {/* icon on phones to leave room for the input, text on bigger screens */}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:hidden">
+            <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.99.99 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />
+          </svg>
+          <span className="hidden sm:inline">Send</span>
         </button>
       )}
     </footer>
