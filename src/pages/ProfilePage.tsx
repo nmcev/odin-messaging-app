@@ -4,6 +4,7 @@ import editIcon from '../assets/edit.svg';
 import { UserPage } from './UserPage';
 import { useParams } from 'react-router-dom';
 import { BackButton } from '../components/BackButton';
+import { avatarProps } from '../utils/avatar';
 
 export const ProfilePage: React.FC = () => {
   const { username } = useParams();
@@ -90,6 +91,7 @@ const handleImageChange = async (
             <img
               src={currentUser.user.profilePic}
               alt="profile"
+              {...avatarProps}
               className="w-full h-full object-cover rounded-full"
             />
             <label className="absolute right-0 bottom-0 bg-indigo-500 text-white p-2 rounded-full shadow-md hover:bg-indigo-600 transition cursor-pointer">

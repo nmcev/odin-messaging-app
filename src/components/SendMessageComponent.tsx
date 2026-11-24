@@ -177,6 +177,13 @@ export const SendMessageComponent: React.FC<SendMessageComponentProps> = ({
   const handleSendLocation = () => {
     if (!chattingWith || locating) return;
 
+    // browsers only allow location on https:// or localhost (not on http://192.168.x.x)
+    if (!window.isSecureContext) {
+      setLocationError('Location sharing needs a secure (https) connection.');
+      setTimeout(() => setLocationError(null), 4000);
+      return;
+    }
+
     if (!navigator.geolocation) {
       setLocationError('Location is not supported by your browser.');
       return;

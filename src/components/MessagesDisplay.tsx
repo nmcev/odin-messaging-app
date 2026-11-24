@@ -2,14 +2,15 @@ import React, { Suspense, lazy, memo, useContext, useEffect, useMemo, useRef, us
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { Message } from '../types/Message';
-import { toExpiredPlaceholder } from '../utils/message';
+import { isImageUrl, toExpiredPlaceholder } from '../utils/message';
+import { avatarProps } from '../utils/avatar';
+import { ChatImage } from './ChatImage';
 
 // Leaflet only loads when the first location message is rendered
 const LocationCard = lazy(() =>
   import('./LocationCard').then((m) => ({ default: m.LocationCard }))
 );
 
-const CLOUDINARY_PREFIX = 'https://res.cloudinary.com/dw';
 
 
 function displayTime(timestamp: string): string {
@@ -32,7 +33,7 @@ function displayDate(timestamp: string): string {
 function getKind(msg: Message): 'expired' | 'location' | 'image' | 'text' {
   if (msg.expired) return 'expired';
   if (msg.type === 'location' && msg.location) return 'location';
-  if (msg.type === 'image' || msg.content.startsWith(CLOUDINARY_PREFIX)) return 'image';
+  if (msg.type === 'image' || isImageUrl(msg.content)) return 'image';
   return 'text';
 }
 
@@ -61,6 +62,7 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
         <img
           src={avatar}
           alt="profile"
+          {...avatarProps}
           loading="lazy"
           decoding="async"
           className="w-full h-full object-cover rounded-full"
@@ -83,16 +85,7 @@ function MessageBubbleBase({ msg, isMine, senderName, avatar, onImageClick }: Me
         )}
 
         {kind === 'image' && (
-          <div className="max-w-full sm:max-w-sm py-1 rounded-lg cursor-pointer">
-            <img
-              src={msg.content}
-              alt="preview"
-              loading="lazy"
-              decoding="async"
-              className="max-w-full max-h-full object-contain"
-              onClick={() => onImageClick(msg.content)}
-            />
-          </div>
+          <ChatImage src={msg.content} onOpen={onImageClick} />
         )}
 
         {kind === 'text' && (

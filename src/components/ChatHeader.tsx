@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import { UserContext } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom';
 import globalIcon from '../assets/global.svg';
+import { avatarProps } from '../utils/avatar';
 
 interface ChatHeaderProps {
     isGlobal?: boolean;
@@ -38,6 +39,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ isGlobal = false, onBack
             <img
                 src={chattingWith.profilePic}
                 alt='profile'
+                {...avatarProps}
                 className='w-full h-full object-cover rounded-full'
             />
             {isPartnerOnline && (

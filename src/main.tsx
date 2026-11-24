@@ -1,6 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+// self-hosted fonts: no Google Fonts request, so the app looks the same offline
+import '@fontsource-variable/inter'
+import '@fontsource/poppins/700.css'
 import './index.css'
 import {  RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.tsx';

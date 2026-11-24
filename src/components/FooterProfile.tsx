@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import logoutIcon from '../assets/logout.svg'
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { avatarProps } from '../utils/avatar';
 
 
 interface Data {
@@ -36,7 +37,7 @@ export const FooterProfile: React.FC<FooterProfileProps> = ({currentUser}) => {
 <footer className="mt-auto shrink-0 bg-gray-200 dark:bg-[#181A1B] text-white py-2 px-4 flex items-center justify-between gap-5 border-t-[1px] border-gray-300 dark:border-gray-700 md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center cursor-pointer min-w-0" onClick={() => navigate(`/user/${currentUser.user.username}`)}>
               <div className="w-10 h-10 md:w-12 md:h-12 shrink-0">
-                  <img className="rounded-full w-full h-full object-cover" src={currentUser.user.profilePic} alt="user avatar" />
+                  <img className="rounded-full w-full h-full object-cover" src={currentUser.user.profilePic} alt="user avatar" {...avatarProps} />
               </div>
 
               <div className="ml-3 min-w-0">

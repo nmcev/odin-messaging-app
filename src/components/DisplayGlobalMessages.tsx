@@ -2,6 +2,9 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { avatarProps } from '../utils/avatar';
+import { ChatImage } from './ChatImage';
+import { isImageUrl } from '../utils/message';
 
 interface GlobalMessage {
   content: string;
@@ -100,6 +103,7 @@ export const DisplayGlobalMessages = () => {
                 <img
                   src={msg.sender._id === currentUser.user._id ? currentUser?.user.profilePic : msg.sender.profilePic}
                   alt='profile'
+                  {...avatarProps}
                   className='w-full h-full object-cover rounded-full cursor-pointer'
                   onClick={() => navigate(`/user/${msg.sender.username}`)}
                 />
@@ -114,14 +118,9 @@ export const DisplayGlobalMessages = () => {
                 <p className='text-sm poppins-bold cursor-pointer' onClick={() => navigate(`/user/${msg.sender.username}`)}>
                   {msg.sender._id === currentUser?.user._id ? 'You' : msg.sender.username}
                 </p>
-                {msg.content.startsWith('https://res.cloudinary.com/dw') ? (
+                {isImageUrl(msg.content) ? (
                   <>
-                 <div className='max-w-full sm:max-w-sm py-1 rounded-lg cursor-pointer'>
-                   <img src={msg.content} alt='preview'
-                    className='max-w-full max-h-full object-contain cursor-pointer' 
-                    onClick={() => setSelectedImage(msg.content)}
-                    />
-                </div>
+                 <ChatImage src={msg.content} onOpen={setSelectedImage} />
                     <p className='text-xs text-gray-500 dark:text-white mt-1'>
                       {msg.sendAt && displayTime(msg.sendAt)}
                     </p>

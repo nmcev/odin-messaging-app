@@ -22,6 +22,7 @@ export const createClientId = (): string =>
 const IMAGE_URL_PREFIXES = [
   'https://res.cloudinary.com/',            // current uploads
   'https://odin-blog-bucket.s3.eu-north-1', // older uploads
+  `${import.meta.env.VITE_API_URL}/uploads/`, // stored on our own server (offline demo mode)
 ];
 
 export const isImageUrl = (text: string): boolean =>

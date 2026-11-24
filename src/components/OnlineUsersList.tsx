@@ -1,4 +1,5 @@
 import React from 'react';
+import { avatarProps } from '../utils/avatar';
 
 interface User {
     username: string;
@@ -26,7 +27,7 @@ export const OnlineUsersList: React.FC<UsersListProps> = ({ users, activeChatId,
                         title={data._id === activeChatId ? 'Click to close this chat' : undefined}
                         onClick={() => onToggleChat(data)}>
                         <div className="w-12 h-12 flex-shrink-0 relative">
-                            <img className="rounded-full w-full h-full object-cover  " src={data.profilePic} alt="user avatar" />
+                            <img className="rounded-full w-full h-full object-cover  " src={data.profilePic} alt="user avatar" {...avatarProps} />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full"></div>
                         </div>
                         <div className="ml-3 flex justify-between gap-2 min-w-0 flex-1 items-center">

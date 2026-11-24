@@ -1,5 +1,6 @@
 import React from 'react';
 import { lastMessagePreview } from '../utils/message';
+import { avatarProps } from '../utils/avatar';
 
 interface User {
     username: string;
@@ -47,7 +48,7 @@ export const UsersList: React.FC<UsersListProps> = ({ users, activeChatId, onTog
                         title={data._id === activeChatId ? 'Click to close this chat' : undefined}
                         onClick={() => onToggleChat(data)}>
                         <div className="w-12 h-12 flex-shrink-0">
-                            <img className="rounded-full w-full h-full object-cover" src={data.profilePic} alt="user avatar" />
+                            <img className="rounded-full w-full h-full object-cover" src={data.profilePic} alt="user avatar" {...avatarProps} />
                         </div>
                         <div className="ml-3 flex justify-between gap-2 min-w-0 flex-1 items-center">
                             <div className="flex justify-center flex-col min-w-0">

@@ -3,6 +3,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/BackButton';
+import { avatarProps } from '../utils/avatar';
 
 interface UserPageProps {
     username: string | undefined
@@ -95,6 +96,7 @@ export const UserPage: React.FC<UserPageProps>= ({ username }) => {
           <img
             src={user.user.profilePic}
             alt="profile"
+            {...avatarProps}
             className="w-full h-full object-cover rounded-full"
           />
 
