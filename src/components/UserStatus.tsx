@@ -15,7 +15,8 @@ interface UserStatusProps {
     onlineUsers: User[];
     offlineUsers: User[];
     results: User[];
-    setOpenGlobalChat: React.Dispatch<React.SetStateAction<boolean>>;
+    activeChatId: string | null;
+    onToggleChat: (user: User) => void;
 }
 
 export const UserStatus: React.FC<UserStatusProps> = (
@@ -23,7 +24,8 @@ export const UserStatus: React.FC<UserStatusProps> = (
         onlineUsers,
         offlineUsers,
         results,
-        setOpenGlobalChat
+        activeChatId,
+        onToggleChat
         
     
     }
@@ -38,7 +40,7 @@ export const UserStatus: React.FC<UserStatusProps> = (
           <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Online Users</h2>
           </div>
-          <OnlineUsersList users={onlineUsers} setOpenGlobalChat={setOpenGlobalChat} />
+          <OnlineUsersList users={onlineUsers} activeChatId={activeChatId} onToggleChat={onToggleChat} />
         </>
       )}
   
@@ -48,7 +50,7 @@ export const UserStatus: React.FC<UserStatusProps> = (
           <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
             <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Offline Users</h2>
           </div>
-          <OfflineUsers users={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} />
+          <OfflineUsers users={offlineUsers} activeChatId={activeChatId} onToggleChat={onToggleChat} />
         </>
       )}
 

@@ -1,5 +1,4 @@
-import React, { useContext } from 'react';
-import { UserContext } from '../context/UserContext';
+import React from 'react';
 
 interface User {
     username: string;
@@ -11,24 +10,21 @@ interface User {
 
 interface UsersListProps {
     users: User[];
-    setOpenGlobalChat: React.Dispatch<React.SetStateAction<boolean>>;
+    activeChatId: string | null; // the chat open right now, if any
+    onToggleChat: (user: User) => void; // opens it, or closes it when it's already open
 }
 
-export const OfflineUsers: React.FC<UsersListProps> = ({ users, setOpenGlobalChat }) => {
-    const userContext = useContext(UserContext);
-    const { setChattingWith } = userContext;
-
-    const handleOpenChat = (user: User) => {
-        setChattingWith(user);
-        setOpenGlobalChat(false);
-    };
+export const OfflineUsers: React.FC<UsersListProps> = ({ users, activeChatId, onToggleChat }) => {
 
 
     return (
         <section className="flex flex-col gap-1 px-2 mt-2">
             {users && (
                 users.map((data) => (
-                    <div key={data._id} className="flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md p-2" onClick={() => handleOpenChat(data)}>
+                    <div key={data._id} className={`flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md p-2 ${data._id === activeChatId ? 'bg-black/10 dark:bg-white/10' : ''}`}
+                        aria-current={data._id === activeChatId ? 'true' : undefined}
+                        title={data._id === activeChatId ? 'Click to close this chat' : undefined}
+                        onClick={() => onToggleChat(data)}>
                         <div className="w-12 h-12 flex-shrink-0 relative">
                             <img className="rounded-full w-full h-full object-cover  " src={data.profilePic} alt="user avatar" />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 rounded-full"></div>

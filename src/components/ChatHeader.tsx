@@ -6,9 +6,10 @@ import globalIcon from '../assets/global.svg';
 interface ChatHeaderProps {
     isGlobal?: boolean;
     onBack?: () => void;
+    isPartnerOnline?: boolean; // the person you're chatting with is connected right now
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ isGlobal = false, onBack }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ isGlobal = false, onBack, isPartnerOnline = false }) => {
     const userContext = useContext(UserContext);
     const navigate = useNavigate();
 
@@ -33,12 +34,21 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ isGlobal = false, onBack
 
     {chattingWith ? (
         <div className='flex items-center cursor-pointer min-w-0' onClick={() => navigate(`/user/${chattingWith.username}`)} >
-            <div className='w-10 h-10 md:w-12 md:h-12 shrink-0'>
+            <div className='relative w-10 h-10 md:w-12 md:h-12 shrink-0'>
             <img
                 src={chattingWith.profilePic}
                 alt='profile'
                 className='w-full h-full object-cover rounded-full'
             />
+            {isPartnerOnline && (
+                // same green dot as the Online Users list; the ring separates it from the photo
+                <span
+                    className='absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-green-500 ring-2 ring-gray-200 dark:ring-[#181A1B]'
+                    role='img'
+                    aria-label='Online'
+                    title='Online'
+                />
+            )}
             </div>
             <h2 className='ml-3 text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200 truncate'>
             {chattingWith.username}

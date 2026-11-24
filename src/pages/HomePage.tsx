@@ -305,10 +305,30 @@ export const HomePage: React.FC = () => {
 
 
 
+  // clicking the global chat while it's open closes it
   const handleGlobalChat = () => {
+    if (openGlobalChat) {
+      handleBack();
+      return;
+    }
     setOpenGlobalChat(true);
     setChattingWith(null);
   }
+
+  // the server sends everyone; you shouldn't appear in your own Users lists
+  const otherOnlineUsers = onlineUsers.filter((u) => u._id !== myId);
+  const isPartnerOnline = Boolean(chattingWith) && onlineUsers.some((u) => u._id === chattingWith?._id);
+  const otherOfflineUsers = offlineUsers.filter((u) => u._id !== myId);
+
+  // used by the Chats list and the Users lists: opens a chat, or closes it if it's the open one
+  const handleToggleChat = (user: User) => {
+    if (activeChatId === user._id) {
+      handleBack();
+      return;
+    }
+    setOpenGlobalChat(false);
+    setChattingWith(user);
+  };
 
   // opening someone from search must also leave the global chat,
   // otherwise their name shows in the header while you type into the public room
@@ -417,7 +437,9 @@ export const HomePage: React.FC = () => {
                   </div>
                   <div className='flex flex-col px-2 mt-2'>
                     <div
-                      className='flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md gap-3 p-2'
+                      className={`flex items-center cursor-pointer hover:bg-[#1919194b] active:bg-[#1919194b] rounded-md gap-3 p-2 ${openGlobalChat ? 'bg-black/10 dark:bg-white/10' : ''}`}
+                      aria-current={openGlobalChat ? 'true' : undefined}
+                      title={openGlobalChat ? 'Click to close this chat' : undefined}
                       onClick={handleGlobalChat}
                     >
                       <div className='w-12 h-12 flex-shrink-0'>
@@ -435,7 +457,7 @@ export const HomePage: React.FC = () => {
                   <div className='border-b-[1px] border-gray-300 dark:border-gray-600 mx-4 mt-5'>
                     <h2 className='text-lg font-bold text-gray-800 dark:text-gray-200 poppins-bold'>Chats</h2>
                   </div>
-                  <UsersList users={users} setOpenGlobalChat={setOpenGlobalChat} />
+                  <UsersList users={users} activeChatId={activeChatId} onToggleChat={handleToggleChat} />
                 </>
               ) : (
                 !results.length && (
@@ -446,7 +468,7 @@ export const HomePage: React.FC = () => {
               )}
             </>
           ) : (
-            <UserStatus onlineUsers={onlineUsers} offlineUsers={offlineUsers} setOpenGlobalChat={setOpenGlobalChat} results={results} />
+            <UserStatus onlineUsers={otherOnlineUsers} offlineUsers={otherOfflineUsers} activeChatId={activeChatId} onToggleChat={handleToggleChat} results={results} />
           )}
         </div>
 
@@ -458,7 +480,7 @@ export const HomePage: React.FC = () => {
         className={`flex-1 min-w-0 min-h-0 flex flex-col dark:bg-[#181A1B]
           ${isConversationOpen ? '' : 'max-md:hidden'}`}
       >
-        <ChatHeader isGlobal={openGlobalChat} onBack={handleBack} />
+        <ChatHeader isGlobal={openGlobalChat} onBack={handleBack} isPartnerOnline={isPartnerOnline} />
 
         {chattingWith && !openGlobalChat && (
           <>
