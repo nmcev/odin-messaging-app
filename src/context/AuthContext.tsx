@@ -119,27 +119,52 @@ const validateToken = useCallback(async () => {
 
     }, [validateToken])
   
+    // Check the form before contacting the server; one message per field, shown under it.
+    const validateCredentials = (username: string, password: string, mode: 'login' | 'register') => {
+      const found: { message: string; path: string }[] = [];
+
+      if (!username.trim()) {
+        found.push({ message: mode === 'login' ? 'Enter your username.' : 'Choose a username.', path: 'username' });
+      } else if (username !== username.trim().toLowerCase()) {
+        found.push({ message: 'Username must be lowercase, with no spaces.', path: 'username' });
+      }
+
+      if (!password) {
+        found.push({ message: 'Enter your password.', path: 'password' });
+      } else if (password.length < 5) {
+        found.push({ message: 'Password must be at least 5 characters.', path: 'password' });
+      }
+
+      return found;
+    };
+
+    // The server answers errors in different shapes: express-validator's { errors: [{ msg, path }] },
+    // { message }, or plain text (e.g. the rate limiter's "Too many attempts").
+    const readServerErrors = async (response: Response) => {
+      const text = await response.text().catch(() => '');
+      let data: { errors?: { msg?: string; path?: string }[]; message?: string } | null = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = null;
+      }
+
+      if (data?.errors?.length) {
+        return data.errors.map((e) => ({
+          message: e.msg || 'Invalid value.',
+          path: e.path === 'username' || e.path === 'password' ? e.path : 'general',
+        }));
+      }
+      const message = data?.message || text.trim() || 'Something went wrong. Please try again.';
+      return [{ message, path: 'general' }];
+    };
+
+    const NETWORK_ERROR = { message: "Can't reach the server. Check your connection and try again.", path: 'general' };
+
     const register = async(username: string,password: string) => {
-      setErrors([]);
-
-
-      if ( username !== username.toLowerCase()){
-         setErrors(prevErrors => [...prevErrors, {message: 'Username must be in lowercase!', path: 'username'}]);
-      }
-
-      if (password.length < 5) {
-         setErrors(prevErrors => [...prevErrors, { message: 'Password must be at least 5 characters long!', path: 'password' }]);
-
-      }
-
-
-
-
-      if (username !== username.trim().toLowerCase() || password.length < 5) {
-        return; // to stop execution
-      }
-
-
+      const problems = validateCredentials(username, password, 'register');
+      setErrors(problems);
+      if (problems.length) return;
 
       try {
         const response = await fetch(`${API_URL}/api/register`, {
@@ -149,62 +174,33 @@ const validateToken = useCallback(async () => {
           },
           body: JSON.stringify({username, password}),
           credentials: 'include'
-  
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
-  
-          setErrors(prevErrors => [
-            ...prevErrors,
-            { message: errorData.message || 'Something went wrong!', path: 'general' }
-          ]);
-  
+          setErrors(await readServerErrors(response));
           return;
         }
-        
+
         const data = await response.json();
 
         if(data.message) {
           setMessage(data.message)
         }
-  
+
         navigate('/login')
 
       } catch (error) {
-
         console.error('Error:', error);
-        setErrors(prevErrors => [
-          ...prevErrors,
-          { message: 'Network error!', path: 'general' }
-        ]);
-  
+        setErrors([NETWORK_ERROR]);
       }
     }
 
     const login  = async(username: string,password: string) => {
+      const problems = validateCredentials(username, password, 'login');
+      setErrors(problems);
+      if (problems.length) return;
 
-        setErrors([]);
-
-
-        if ( username !== username.toLowerCase()){
-           setErrors(prevErrors => [...prevErrors, {message: 'Username must be in lowercase!', path: 'username'}]);
-        }
-  
-        if (password.length < 5) {
-           setErrors(prevErrors => [...prevErrors, { message: 'Password must be at least 5 characters long!', path: 'password' }]);
-  
-        }
-  
-  
-  
-  
-        if (username !== username.trim().toLowerCase() || password.length < 5) {
-          return; // to stop execution
-        }
-      
       try{
-          
         const response = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
@@ -212,35 +208,22 @@ const validateToken = useCallback(async () => {
           },
           body: JSON.stringify({username, password}),
           credentials: 'include'
-  
         });
-  
+
         if (!response.ok) {
-          const errorData = await response.json();
-  
-          setErrors(prevErrors => [
-            ...prevErrors,
-            { message: errorData.message || 'Something went wrong!', path: 'general' }
-          ]);
-  
+          setErrors(await readServerErrors(response));
           return;
         }
-        
+
         const data = await response.json();
-  
-  
-      clearSessionData();
-      localStorage.setItem('token', data.token );
-      setToken(data.token)
-      navigate('/homepage')
+
+        clearSessionData();
+        localStorage.setItem('token', data.token );
+        setToken(data.token)
+        navigate('/homepage')
       }catch(error) {
-  
         console.error('Error:', error);
-        setErrors(prevErrors => [
-          ...prevErrors,
-          { message: 'Network error!', path: 'general' }
-        ]);
-  
+        setErrors([NETWORK_ERROR]);
       }
     }
 
