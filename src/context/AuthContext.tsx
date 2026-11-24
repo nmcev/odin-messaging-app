@@ -18,6 +18,7 @@ interface User {
 interface AuthContextType {
     token: string | null;
     errors: { message: string; path: string }[];
+    clearErrors: () => void;
     login: (username: string, password: string) => Promise<void>;
     register: (username: string, password: string) => Promise<void>
     logout: () => void
@@ -243,6 +244,8 @@ const validateToken = useCallback(async () => {
       }
     }
 
+    const clearErrors = useCallback(() => setErrors([]), []);
+
     const logout = () => {
       const userConfirmed = window.confirm('Are you sure you want to log out?');
       if (userConfirmed) {
@@ -259,6 +262,7 @@ const validateToken = useCallback(async () => {
     const contextValue: AuthContextType = {
         token,
         errors,
+        clearErrors,
         login,
         logout,
         validateToken,
